@@ -1,0 +1,45 @@
+StackF765 flight controller renders - credits and licences
+==========================================================
+
+Flight controller boards: fc/models/lower.glb, upper.glb, service.glb
+  The three boards shown (Lower power board, Upper flight-controller board, Service board) are the
+  GLB models exported by KiCad from the StackF765 design files at
+  https://github.com/PeterJBurke/stackf765, copied unchanged by sync-models.sh.
+  Hardware licence: CERN-OHL-P v2 (see that repository).
+  The pages recolour the models at load time (dark-green solder mask, black headers, gold pins,
+  plain body colours for parts whose model has no colour). Geometry is not changed.
+
+Page design
+  Layout, controls, camera presets, styling and viewer code are taken from Peter Burke's FC viewer at
+  https://peterjburke.github.io/dronerenders/fc/ (repository PeterJBurke/dronerenders, commit
+  2164bba) and adapted to the StackF765 boards. This site is separate from that repository.
+
+Frame model: fc/assets/native-frame.js
+  MOD-L 4-inch HD Cargo frame (4" regular arms, Cargo top and bottom plates, cross plate, 30 mm standoffs).
+  Design: MOD-L by ledroneclub, Thingiverse thing 4295478, https://www.thingiverse.com/thing:4295478
+  Licence: Creative Commons Attribution (CC BY), as stated with the designer's files.
+  The packed mesh file is copied unchanged from dronerenders fc/assets/native-frame.js, where the
+  designer's part geometry was assembled and recoloured for that viewer (parts not stretched).
+
+Scale coin: fc/assets/penny.js (copied unchanged from dronerenders fc/assets/penny.js)
+  The original credit file is kept beside it as fc/assets/PENNY-CREDITS.txt:
+  Obverse: United States Mint, public-domain US government work
+    (https://commons.wikimedia.org/wiki/File:2010_cent_obverse.png).
+  Reverse texture: Leopard2A7m, CC BY-SA 4.0
+    (https://commons.wikimedia.org/wiki/File:Union_Shield_Cent.jpg,
+     https://creativecommons.org/licenses/by-sa/4.0/).
+
+Matek F405-WMO comparison reference: fc/assets/matek-model.js, matek-drone-assembly.js,
+  matek-f405-wmo-original.jpg, matek-model-provenance.json, matek-drone-assembly-provenance.json
+  Copied unchanged from dronerenders fc/assets/. A photograph-derived 3D reconstruction, not
+  manufacturer CAD; its sources and dimension limits are recorded in the two provenance files.
+  The photograph is Matek's product image (https://www.mateksys.com/?portfolio=f405-wmo) and
+  remains the property of its owner; it is used here only as the comparison reference.
+
+three.js r160: fc/assets/three.min.js, GLTFLoader.js, BufferGeometryUtils.js
+  MIT licence, Copyright 2010-2023 three.js authors; see fc/assets/THREE-LICENSE.txt.
+  three.min.js is copied from dronerenders; the two loader modules are the unmodified r160 example
+  modules apart from one relative import path. fc/assets/three-shim.js lets them use the global build.
+
+Mounting posts, rubber grommets, washers, screws, foam tape and the service cable are simple
+illustrative shapes generated in fc/assets/stackf765-loader.js; they are not CAD models.
