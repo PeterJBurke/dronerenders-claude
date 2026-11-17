@@ -3,7 +3,7 @@
 
 Reads the pin tables straight out of the design sources (no pin names are typed in here):
   gen/upper.py  J1_ROWS (3x12 header), SVC (service cable)
-  gen/lower.py  J2 / J2_LABELS (2x10 header), B2B_COLS (board-to-board), PAD_X (power pads)
+  gen/lower.py  J2_ROWS / J2_LABELS (3x9 header), B2B_COLS (board-to-board), PAD_X (power pads)
 
 Usage: tools/make-pin-data.py [/path/to/stackf765-checkout]   (default /root/fcclaude)
 """
@@ -18,7 +18,8 @@ def literals(path, names):
     for node in ast.parse(path.read_text()).body:
         if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) \
                 and node.targets[0].id in names:
-            found[node.targets[0].id] = ast.literal_eval(node.value)
+            # constant expressions only (lists are built with * and + in the source); no names, no builtins
+            found[node.targets[0].id] = eval(compile(ast.Expression(node.value), str(path), "eval"), {"__builtins__": {}})
     missing = set(names) - set(found)
     if missing:
         raise SystemExit(f"{path}: missing {sorted(missing)}")
@@ -26,7 +27,7 @@ def literals(path, names):
 
 
 up = literals(src / "gen/upper.py", ["J1_ROWS", "SVC"])
-lo = literals(src / "gen/lower.py", ["J2", "J2_LABELS", "B2B_COLS", "PAD_X"])
+lo = literals(src / "gen/lower.py", ["J2_ROWS", "J2_LABELS", "B2B_COLS", "PAD_X"])
 
 UARTS = [1, 2, 3, 4, 6, 7, 8]          # ArduPilot SERIAL1-7, from docs/pinout.md
 
@@ -73,13 +74,16 @@ groups.append({"board": "UpperLogic", "ref": "J1", "title": "Upper · J1 · 3×1
                        ". Row C: " + ROWNOTE["C"] + ". Pins marked 5V are powered only from the battery; pins marked 4V5 "
                        "are also powered from USB.", "rows": rows})
 rows = []
-for i, ((top, bottom), label) in enumerate(zip(lo["J2"], lo["J2_LABELS"])):
-    rows.append({"pin": f"{i + 1} top", "net": sig(label, top), "function": describe(top) if top != "+5V" else "Flight-controller 5 V rail"})
-for i, (top, bottom) in enumerate(lo["J2"]):
-    rows.append({"pin": f"{i + 1} bottom", "net": sig("G", bottom), "function": describe(bottom)})
-groups.append({"board": "LowerPower", "ref": "J2", "title": "Lower · J2 · 2×10 header",
-               "note": "Right-angle 0.1 inch header. Seen from above with the header pointing away from you, column 1 is on "
-                       "the left. Top row: " + " ".join(lo["J2_LABELS"]) + ". Bottom row: all GND.", "rows": rows})
+for row in "ABC":
+    for i, (label, net) in enumerate(lo["J2_ROWS"][row]):
+        fn = "Flight-controller 5 V rail" if net == "+5V" else describe(net)
+        rows.append({"pin": f"{row}{i + 1}", "net": sig(label, net), "function": fn})
+ncol = len(lo["J2_LABELS"])
+groups.append({"board": "LowerPower", "ref": "J2", "title": f"Lower · J2 · 3×{ncol} header",
+               "note": "Right-angle 0.1 inch header; each column takes a standard 3-pin servo / ESC plug: signal / 5 V / "
+                       "ground from the top pin down. Seen from above with the header pointing away from you, column 1 is "
+                       "on the left. Row A (highest pins, signal): " + " ".join(lo["J2_LABELS"]) + ". Row B (middle): 5 V, "
+                       "or PI5V in the two PI5V columns. Row C (nearest the board): all GND.", "rows": rows})
 pads = sorted(lo["PAD_X"], key=lambda k: lo["PAD_X"][k])
 PADFN = {"BAT+": "Battery positive", "BAT-": "Battery negative", "ESC+": "ESC positive", "ESC-": "ESC negative"}
 groups.append({"board": "LowerPower", "ref": "POWER", "title": "Lower · Power solder pads",
@@ -94,11 +98,11 @@ for c, (top, bottom) in enumerate(lo["B2B_COLS"]):
     rows.append({"pin": str(2 * c + 1), "net": top, "function": describe(top)})
     rows.append({"pin": str(2 * c + 2), "net": bottom, "function": describe(bottom)})
 groups.append({"board": "UpperLogic", "ref": "J3", "title": "Between boards · Upper J3 ↔ Lower J1",
-               "note": "20 contacts in a 2×10 header and socket; same-number contacts mate. Not an external connector.", "rows": rows})
+               "note": "20 contacts, 2×10 at 1.27 mm pitch: Samtec FTSH-110-04-L-DV header on the Upper board mates with SFMC-110-02-L-D socket on the Lower; same-number contacts mate. Not an external connector.", "rows": rows})
 
 data = {
     "metadata": {
-        "board": "StackF765", "processor": "STM32F765VIT6", "ardupilot_board_name": "StackF765",
+        "board": "StackF765", "revision": "B", "processor": "STM32F765VIT6", "ardupilot_board_name": "StackF765",
         "status": "Design verified by rule checks; no hardware built yet.",
         "sources": {f"gen/{n}.py": hashlib.sha256((src / f"gen/{n}.py").read_bytes()).hexdigest() for n in ("upper", "lower")},
         "repository": "https://github.com/PeterJBurke/stackf765",

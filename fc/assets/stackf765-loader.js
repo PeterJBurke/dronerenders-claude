@@ -21,8 +21,8 @@ export const DIM = {
   board: [31.5, 48],   // Upper and Lower outline
   service: [18, 32],   // Service outline
   pcb: 1.6,            // PCB thickness
-  standoff: 6.0,       // board-to-board standoff
-  gap: 7.6,            // Lower top surface -> Upper top surface (standoff + PCB)
+  standoff: 8.0,       // board-to-board standoff
+  gap: 9.6,            // Lower top surface -> Upper top surface (standoff + PCB)
   hole: 10,            // 20 x 20 mm mounting pattern: holes at +-10 mm
   post: 7.0,           // frame post under each grommet (illustrative)
   grommet: 6.6,        // rubber grommet height (illustrative)
@@ -30,7 +30,7 @@ export const DIM = {
   cable: 100,          // service cable length
 };
 DIM.zLower = DIM.post + (DIM.grommet - DIM.pcb) / 2;   // bottom face of the Lower PCB: 9.5
-DIM.zUpper = DIM.zLower + DIM.gap;                     // bottom face of the Upper PCB: 17.1
+DIM.zUpper = DIM.zLower + DIM.gap;                     // bottom face of the Upper PCB: 19.1
 
 // Same shape as the reference's window.FC_VIEW_METADATA.
 export const VIEW_METADATA = {
