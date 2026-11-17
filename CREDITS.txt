@@ -41,5 +41,5 @@ three.js r160: fc/assets/three.min.js, GLTFLoader.js, BufferGeometryUtils.js
   three.min.js is copied from dronerenders; the two loader modules are the unmodified r160 example
   modules apart from one relative import path. fc/assets/three-shim.js lets them use the global build.
 
-Mounting posts, rubber grommets, washers, screws, foam tape and the service cable are simple
+Mounting posts, rubber grommets, washers, screws and the service cable are simple
 illustrative shapes generated in fc/assets/stackf765-loader.js; they are not CAD models.

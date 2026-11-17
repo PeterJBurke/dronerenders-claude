@@ -26,7 +26,7 @@ export const DIM = {
   hole: 10,            // 20 x 20 mm mounting pattern: holes at +-10 mm
   post: 7.0,           // frame post under each grommet (illustrative)
   grommet: 6.6,        // rubber grommet height (illustrative)
-  tape: 1.0,           // foam tape under the service board (assumed)
+  ground: -7.4,        // the drone page's ground grid (just under the frame's cross plate)
   cable: 100,          // service cable length
 };
 DIM.zLower = DIM.post + (DIM.grommet - DIM.pcb) / 2;   // bottom face of the Lower PCB: 9.5
@@ -47,9 +47,10 @@ const BOARDS = {
   upper: { key: 'UpperLogic', name: 'Upper', headers: ['J1'], z: DIM.zUpper },
   service: { key: 'Service', name: 'Service', headers: [], z: 0 },
 };
-// Where the drone page shows the service board: flat on the bottom plate behind the stack,
-// long axis across the frame, USB socket toward the left side (-X).
-export const SERVICE_SITE = { x: 0, y: -42, rotZ: Math.PI / 2 };
+// Where the drone page shows the service board: a loose accessory, not fixed to the frame. It lies
+// flat on the ground grid to the right of the frame, between the two right-hand arms, component side
+// up, with its cable connector (J2) toward the stack. The user mounts it wherever suits the airframe.
+export const SERVICE_SITE = { x: 80, y: 0, z: DIM.ground + 0.1, rotZ: -Math.PI / 2 };
 
 /* ---- display materials -------------------------------------------------------------------
  * KiCad's export colours are replaced by the reference viewer's board appearance: dark-green solder
@@ -212,36 +213,42 @@ export function makeMountHardware() {
   return out;
 }
 
-// Round cable along a smooth path through `pts` ([x,y,z] mm).
-function makeCable(pts, radius = 1.25) {
-  const curve = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p)), false, 'centripetal');
+// Round cable along a smooth path through `pts` ([x,y,z] mm); never dips below `floor` if given.
+function makeCable(pts, radius = 1.25, floor = -Infinity) {
+  let curve = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p)), false, 'centripetal');
+  if (floor > -Infinity) curve = new THREE.CatmullRomCurve3(curve.getPoints(160).map((p) => p.setZ(Math.max(p.z, floor))), false, 'centripetal');
   const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 96, radius, 10, false),
     new THREE.MeshStandardMaterial({ color: 0x2b2d31, metalness: 0, roughness: 0.6 }));
   mesh.userData.length = curve.getLength();
   return mesh;
 }
-// From the Upper board's cable connector (J5, opens toward +X): the slack is folded forward and down
-// beside the stack, then the cable runs back along the right edge of the plate into the service
-// board's connector (J2). The fold is sized so the drawn cable is the real 100 mm.
-function routeCable(upper, service) {
+// From the Upper board's cable connector (J5, on the right-hand edge, opening toward +X) the cable
+// leaves horizontally, drapes over the edge of the bottom plate down to the ground, and lies there in
+// one slack bow into the loose service board's connector (J2). The sideways slack is sized so the
+// drawn cable is the real 100 mm.
+function routeCable(upper, service, radius = 1.25) {
   const end = (b, ref) => {
     b.body.updateMatrixWorld(true);
-    if (b.boxes[ref]) { const box = new THREE.Box3().setFromObject(b.body.getObjectByName(ref)); return { c: box.getCenter(new THREE.Vector3()), x: box.max.x }; }
+    if (b.boxes[ref]) { const box = new THREE.Box3().setFromObject(b.body.getObjectByName(ref)); return { c: box.getCenter(new THREE.Vector3()), min: box.min.x, max: box.max.x }; }
     if (!b.parts[ref]) return null;
-    const c = b.parts[ref].clone().applyMatrix4(b.body.matrixWorld); c.z += 1; return { c, x: c.x + 2 };   // connector has no 3D model in this export
+    const c = b.parts[ref].clone().applyMatrix4(b.body.matrixWorld); c.z += 1; return { c, min: c.x - 2, max: c.x + 2 };   // connector has no 3D model in this export
   };
   const a = end(upper, 'J5'), b = end(service, 'J2');
   if (!a || !b) return null;
-  const ac = a.c, bc = b.c, ax = a.x, bx = b.x, az = ac.z + 0.2, bz = bc.z;
-  const path = (h) => [[ax - 1.5, ac.y, az], [ax + 2.5, ac.y, az], [ax + 4.2, ac.y + 0.45 * h, az - 5], [ax + 4.6, ac.y + h, 9],
-    [ax + 5.6, ac.y + 0.55 * h, 4.4], [21.6, -20, 3.2], [21.7, -31, 3.2], [bx + 5.5, bc.y + 5, bz + 0.3], [bx + 2.5, bc.y, bz], [bx - 1.5, bc.y, bz]];
-  let lo = 0, hi = 45, cable = null;
+  const ax = a.max, ay = a.c.y, az = a.c.z + 0.2, bx = b.min, by = b.c.y, bz = b.c.z, g = DIM.ground + radius + 0.05;
+  const x0 = ax + 21, run = bx - 7 - x0;                 // where it reaches the ground; length of the ground run
+  const lie = (t, h) => [x0 + t * run, ay + (by - ay) * t + h * Math.sin(Math.PI * t) ** 1.5, g];   // one slack bow on the ground, toward the nose
+  const path = (h) => [[ax - 1.5, ay, az], [ax + 3, ay, az], [ax + 9, ay, az - 3.5], [ax + 14, ay, az - 12],
+    [ax + 17.5, ay, g + 6], lie(0, h), lie(0.14, h), lie(0.28, h), lie(0.5, h), lie(0.72, h), lie(0.86, h), lie(1, h),
+    [bx - 2.5, by, bz], [bx + 1.5, by, bz]];
+  let lo = 0, hi = 34, cable = null;
   for (let i = 0; i < 18; i++) {
     const h = (lo + hi) / 2;
-    cable = makeCable(path(h));
+    cable = makeCable(path(h), radius, g);
     if (cable.userData.length < DIM.cable) lo = h; else hi = h;
     if (i < 17) cable.geometry.dispose();
   }
+  cable.userData.slack = (lo + hi) / 2;
   return cable;
 }
 
@@ -249,7 +256,7 @@ function routeCable(upper, service) {
  * addCurrentNativeAssembly). Options:
  *   boards     which GLBs to load, default all three
  *   hardware   add the illustrative posts, grommets and screws (default true)
- *   serviceSite 'drone' = taped to the bottom plate behind the stack with its cable;
+ *   serviceSite 'drone' = loose on the ground grid beside the frame, on its 100 mm cable;
  *               'bench' = alone at the origin, lying on the floor plane (Board page)
  *   base       URL of the models folder
  *   onProgress(loadedBytes)
@@ -271,13 +278,9 @@ export async function addStackF765Assembly(groups, options = {}) {
   if (loaded.service) {
     const s = loaded.service;
     if (options.serviceSite === 'drone') {
-      s.body.position.set(SERVICE_SITE.x, SERVICE_SITE.y, DIM.tape);
+      s.body.position.set(SERVICE_SITE.x, SERVICE_SITE.y, SERVICE_SITE.z);
       s.body.rotation.z = SERVICE_SITE.rotZ;
-      const tape = new THREE.Mesh(new THREE.BoxGeometry(28, 14, DIM.tape - 0.1), new THREE.MeshStandardMaterial({ color: 0xd9dbde, roughness: 0.9 }));
-      tape.position.set(SERVICE_SITE.x, SERVICE_SITE.y, DIM.tape / 2);
-      tape.name = 'Service/foam tape (assumed)';
-      tape.userData = { group: 'fc', board: 'Service', role: 'service_illustration', dupontHeader: false, illustrative: true };
-      groups.fc.add(s.body, tape);
+      groups.fc.add(s.body);
       if (loaded.upper) {
         const cable = routeCable(loaded.upper, s);
         if (cable) {
