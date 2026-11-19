@@ -319,12 +319,17 @@ export async function addStackF765Assembly(groups, options = {}) {
 
 /* The MOD-L 4" HD Cargo frame meshes, exactly as the reference packs and draws them
  * (native-frame.js -> window.CURRENT_FRAME_MESHES; this is the frame half of the reference's
- * addCurrentNativeAssembly, unchanged). */
+ * addCurrentNativeAssembly, unchanged), except that the two middle standoffs are not drawn. */
+// The frame's two middle standoffs (x = +-16.7, y = -28 mm) stand right behind the tail corners of the
+// flight controller, over its battery / ESC solder pads. They are not needed and are left out; the four
+// standoffs at the nose and tail ends stay. The packed mesh file itself is unchanged.
+export const OMITTED_FRAME_MESHES = ['Frame/Standoff-3', 'Frame/Standoff-4'];
 export function addFrame(groups) {
   const decode = (s, T) => { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return new T(u.buffer); };
   const linear = (x) => (x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4));
   let n = 0;
   for (const d of window.CURRENT_FRAME_MESHES) {
+    if (OMITTED_FRAME_MESHES.includes(d.name)) continue;
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(decode(d.p, Float32Array), 3));
     g.setAttribute('normal', new THREE.BufferAttribute(decode(d.n, Float32Array), 3));
@@ -334,6 +339,6 @@ export function addFrame(groups) {
     const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.77, metalness: 0.16, side: THREE.DoubleSide }));
     m.name = d.name; groups[d.group].add(m); n++;
   }
-  if (n !== 13) throw Error('Frame mesh count mismatch');
+  if (n !== 11) throw Error('Frame mesh count mismatch');
   return n;
 }

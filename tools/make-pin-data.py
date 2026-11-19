@@ -91,7 +91,8 @@ groups.append({"board": "LowerPower", "ref": "POWER", "title": "Lower · Power s
                "rows": [{"pin": p, "net": p, "function": PADFN[p]} for p in pads]})
 SVCLABEL = {"USB_DM": "D-", "USB_DP": "D+", "BUZ_OUT": "BUZ", "BOOT0": "BOOT"}
 groups.append({"board": "UpperLogic", "ref": "J5", "title": "Service cable · Upper J5 ↔ Service J2",
-               "note": "JST-SH 1.0 mm, six pins, 100 mm cable wired pin 1 to pin 1.",
+               "note": "JST-SH 1.0 mm, six pins, 100 mm cable wired pin 1 to pin 1. Same pin order on both ends. The order is "
+                       "reversal-safe: a cable wired 6-to-1 by mistake does no damage.",
                "rows": [{"pin": str(p), "net": sig(SVCLABEL.get(n, n), n), "function": describe(n)} for p, n in sorted(up["SVC"].items())]})
 rows = []
 for c, (top, bottom) in enumerate(lo["B2B_COLS"]):
