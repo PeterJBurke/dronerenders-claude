@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """One-off: derive the StackF765 render pages from the reference dronerenders fc/ pages by explicit,
-asserted text substitutions (so everything not listed here stays byte-identical to the reference)."""
+asserted text substitutions (so everything not listed here stays byte-identical to the reference).
+
+Later hand edits made directly in fc/index.html are NOT reproduced by this script: the "Mounting" view
+preset, the grommet label and legend entry, and the side-view offset of the frame label (2026-11-19,
+rubber grommet mounting). The mounting wording below was updated at the same time."""
 import re, pathlib
 REF = pathlib.Path('/root/fcclaude/build/ref-dronerenders/fc'); OUT = pathlib.Path('/root/fcclaude-renders/fc')
 def sub(s, a, b, n=1):
@@ -23,11 +27,11 @@ s = sub(s, 'Actual supplied frame meshes and current native board placement. Fra
 s = sub(s, '4″ regular arms · Cargo top/bottom · cross plate<br/>30 mm frame standoffs.',
         '4″ regular arms · Cargo top/bottom · cross plate<br/>30 mm frame standoffs.<br/>Frame design: MOD-L by ledroneclub, <a class="inline" href="https://www.thingiverse.com/thing:4295478" rel="noopener" target="_blank">Thingiverse thing 4295478</a>, licensed Creative Commons Attribution (CC BY).')
 s = rsub(s, r'(?<=<div class="key" id="newFCDetails">).*?(?=</div>)',
-         'StackF765: STM32F765VIT6 flight controller, ArduPilot board name StackF765, 2S–3S, 50 A. Upper (flight controller) and Lower (power) boards: 31.5 × 48 mm on 8.0 mm standoffs; Upper top surface 9.6 mm above the Lower’s. 20 × 20 mm grommet mount. Rev B. Interboard connectors: Samtec SFMC-110-02-L-D (Lower J1) / FTSH-110-04-L-DV (Upper J3); standoffs Sinhoo SMTSO2080CTJ, 8 mm. Upper J1 is a 3×12 and Lower J2 a 3×9 right-angle header, bodies overhanging the front edge. Service board (USB / buzzer / boot) is on a 100 mm cable and can be mounted anywhere on the airframe; shown loose. It is 18 × 32 mm; the cable is six-wire JST-SH.')
+         'StackF765: STM32F765VIT6 flight controller, ArduPilot board name StackF765, 2S–3S, 50 A. Upper (flight controller) and Lower (power) boards: 31.5 × 48 mm on 8.0 mm standoffs; Upper top surface 9.6 mm above the Lower’s. Rev B. Soft-mounted, Matek style: a silicone grommet is pressed into each of the Lower board’s four 4 mm holes (20 × 20 mm pattern) and an M2 screw with a washer goes through each grommet into the frame, so the Lower board floats on rubber 2.5 mm above the plate. The Upper board is not fastened to the frame; it sits on the Lower board’s three standoffs. Interboard connectors: Samtec SFMC-110-02-L-D (Lower J1) / FTSH-110-04-L-DV (Upper J3); standoffs Sinhoo SMTSO2080CTJ, 8 mm. Upper J1 is a 3×12 and Lower J2 a 3×9 right-angle header, bodies overhanging the front edge. Service board (USB / buzzer / boot) is on a 100 mm cable and can be mounted anywhere on the airframe; shown loose. It is 18 × 32 mm; the cable is six-wire JST-SH.')
 s = rsub(s, r'(?<=<p id="newFCFit">).*?(?=</p>)',
-         'KiCad board models with standard dark-green display solder mask, black headers and gold pins applied as display materials. No synthetic pad solids, overlaid board textures or altered board geometry. Visible posts, red rubber mounts and screws are provisional nominal illustrations, as is the cable route to the loose service board, which lies on the ground grid beside the frame and is not fixed to it. No motors, ESC, battery or other wiring. ' + STATUS)
+         'KiCad board models with standard dark-green display solder mask, black headers and gold pins applied as display materials. No synthetic pad solids, overlaid board textures or altered board geometry. The orange silicone grommets (generic “M3 to M2” type: 4 mm waist, 6.6 mm flanges, 6.6 mm tall), washers and M2 screws are nominal illustrations, as is the cable route to the loose service board, which lies on the ground grid beside the frame and is not fixed to it. No motors, ESC, battery or other wiring. ' + STATUS)
 s = rsub(s, r'(?<=<summary>Current geometry and display limits</summary><p>).*?(?=</p></details>)',
-         'Boards are the GLB models KiCad exports from the design files, placed by rigid transforms only: Lower PCB 9.5–11.1 mm above the bottom plate, 8.0 mm standoffs, 31.5 × 48 mm outlines. Colours are display materials, not a fabrication finish. Header visibility toggles the Upper J1 and Lower J2 header models; the interboard connector stays visible. Mounting posts, rubber, screws and cable are simple drawn shapes, not CAD. The Matek option is a separate historical photo-derived reference.</p><p>' + REPO_LINE + '.</p><p><a class="inline" href="../CREDITS.txt">Credits and licences</a>')
+         'Boards are the GLB models KiCad exports from the design files, placed by rigid transforms only: Lower PCB 2.5–4.1 mm above the bottom plate on the lower flanges of its grommets, 8.0 mm standoffs, 31.5 × 48 mm outlines. Colours are display materials, not a fabrication finish. Header visibility toggles the Upper J1 and Lower J2 header models; the interboard connector stays visible. The silicone grommets, M2 screws and cable are simple drawn shapes, not CAD; frame-side nuts are not drawn. The Matek option is a separate historical photo-derived reference.</p><p>' + REPO_LINE + '.</p><p><a class="inline" href="../CREDITS.txt">Credits and licences</a>')
 s = sub(s, 'value="ours"/>New FC</label>', 'value="ours"/>StackF765</label>')
 s = sub(s, '<div class="label" id="fcLabel">New FC stack<small>', '<div class="label" id="fcLabel">StackF765 stack<small>')
 s = sub(s, 'CC BY · New FC placement · fit not qualified</span>', 'CC BY · StackF765 placement · fit not qualified</span>')
@@ -36,10 +40,10 @@ s = sub(s, "<script>\n(()=>{'use strict';", "<script type=\"module\">\nimport{ad
 s = sub(s, 'addCurrentNativeAssembly(THREE,groups);', 'addFrame(groups);')
 s = sub(s, "(ours?'New FC':'Matek F405-WMO')+'<br>MOD-L", "(ours?'StackF765':'Matek F405-WMO')+'<br>MOD-L")
 s = sub(s, "'Current native Upper and Lower geometry at an 8.5 mm face gap; unchanged frame and provisional mounting hardware.'",
-        "'StackF765 Upper and Lower boards on 8.0 mm standoffs, with the service board on its 100 mm cable; unchanged frame and provisional mounting hardware.'")
-s = sub(s, "ours?'New FC stack<small>Direct rubber-grommet mounting</small>'", "ours?'StackF765 stack<small>Direct rubber-grommet mounting</small>'")
+        "'StackF765 Upper and Lower boards on 8.0 mm standoffs, with the service board on its 100 mm cable; the Lower board is soft-mounted on four silicone grommets (20 × 20 mm, M2 screws).'")
+s = sub(s, "ours?'New FC stack<small>Direct rubber-grommet mounting</small>'", "ours?'StackF765 stack<small>Soft-mounted on 4 silicone grommets · 20 × 20 mm · M2</small>'")
 s = sub(s, "(ours?'New FC placement':'Matek reference reconstruction')", "(ours?'StackF765 placement':'Matek reference reconstruction')")
-s = sub(s, "ours?'New FC uses four rubber grommets.'", "ours?'StackF765 uses four rubber grommets.'")
+s = sub(s, "ours?'New FC uses four rubber grommets.'", "ours?'StackF765 is soft-mounted on four silicone grommets with M2 screws.'")
 s = sub(s, "'Toggle exact source-bound external J1/J2 header meshes; interboard pair unchanged'", "'Toggle the external J1/J2 header models; interboard pair unchanged'")
 s = sub(s, 'nativeGeometryPreserved:true', 'boardGeometryPreserved:true')
 s = sub(s, 'window.cargoViewer={scene,camera,renderer,groups,penny,setView,update,selectFC};window.CARGO_READY=true;',
@@ -59,10 +63,10 @@ s = sub(s, '<button id="upperPins"></button><button id="lowerPins"></button>', '
 s = rsub(s, r'(?<=<aside hidden="" id="legend">).*?(?=<section aria-label="Connector pin reference")',
          '<h1>StackF765 boards</h1>'
          '<p>31.5 × 48 mm boards on 8.0 mm standoffs: Upper top surface 9.6 mm above the Lower’s. Upper is the flight controller (STM32F765VIT6, ArduPilot board name StackF765); Lower is the power board (2S–3S, 50 A). Rev B. Interboard connectors: Samtec SFMC-110-02-L-D (Lower J1) / FTSH-110-04-L-DV (Upper J3); standoffs Sinhoo SMTSO2080CTJ, 8 mm. Upper J1 is a 3×12 and Lower J2 a 3×9 right-angle header, bodies overhanging the front edge. Service board (USB, buzzer, boot): 18 × 32 mm on a 100 mm six-wire JST-SH cable. ' + STATUS + '</p>'
-         '<p>20 × 20 mm grommet mount. Visible posts, rubber and screws are provisional nominal hardware, not qualified supplier models. No harness wires; the service cable is not drawn on this page.</p>'
+         '<p>Soft-mounted, Matek style: a silicone grommet is pressed into each of the Lower board’s four 4 mm holes (20 × 20 mm pattern) and an M2 screw with a washer goes through each grommet into the frame, so the Lower board floats on rubber 2.5 mm above the plate. The Upper board is not fastened to the frame; it sits on the Lower board’s three standoffs. Here the stack stands on its grommets on the floor grid; “Explode stack” lifts the Upper board and the four screws, leaving the grommets in the Lower board. The orange grommets (generic “M3 to M2” type: 4 mm waist, 6.6 mm flanges), washers and screws are nominal illustrations, not supplier models. No harness wires; the service cable is not drawn on this page.</p>'
          '<p>Standard dark-green display mask, black headers and gold pins are display materials on the KiCad board models; board geometry unchanged. The J1/J2 header toggle preserves the interboard connector.</p>'
          '<p>' + REPO_LINE + '. <a class="inline" href="../CREDITS.txt">Credits and licences</a>.</p>')
-s = sub(s, '<span>Current native geometry · provisional hardware · not fabrication-ready</span>', '<span>KiCad board geometry · provisional hardware · ' + STATUS + '</span>')
+s = sub(s, '<span>Current native geometry · provisional hardware · not fabrication-ready</span>', '<span>KiCad board geometry · illustrative silicone grommets and M2 screws · ' + STATUS + '</span>')
 s = sub(s, '<script src="assets/current-native-metadata.js"></script>', '')
 s = rsub(s, NATIVE, '')
 s = sub(s, '<script src="assets/viewer.js"></script><script src="assets/pin-data.js"></script><script src="assets/pin-table.js"></script>',

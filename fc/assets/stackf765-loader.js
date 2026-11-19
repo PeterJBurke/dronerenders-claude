@@ -8,8 +8,8 @@
  * Z = 0 on the top face of the frame's bottom plate, X/Y = 0 at the centre of the 20 x 20 mm FC mount.
  *
  * Every object handed back carries the userData the reference page scripts expect:
- *   board: 'UpperLogic' | 'LowerPower' | 'Service' | undefined (mounting hardware)
- *   role:  'board' | 'header' | 'provisional_hardware' | 'service_illustration'
+ *   board: 'UpperLogic' | 'LowerPower' | 'Service' | undefined (mounting screws)
+ *   role:  'board' | 'header' | 'grommet' | 'provisional_hardware' | 'service_illustration'
  *   dupontHeader: true for the 0.1 inch right-angle headers (Upper J1, Lower J2)
  */
 import { GLTFLoader } from './GLTFLoader.js';
@@ -24,13 +24,17 @@ export const DIM = {
   standoff: 8.0,       // board-to-board standoff
   gap: 9.6,            // Lower top surface -> Upper top surface (standoff + PCB)
   hole: 10,            // 20 x 20 mm mounting pattern: holes at +-10 mm
-  post: 7.0,           // frame post under each grommet (illustrative)
-  grommet: 6.6,        // rubber grommet height (illustrative)
+  grommet: 6.6,        // silicone grommet, overall height ("M3 to M2" type; nominal)
+  flange: 2.5,         // grommet flange thickness below and above the PCB
+  flangeDia: 6.6,      // grommet flange diameter (the board keeps 7 mm clear around each hole)
+  grommetHole: 4.0,    // Lower board mounting hole = grommet waist
   ground: -7.4,        // the drone page's ground grid (just under the frame's cross plate)
   cable: 100,          // service cable length
 };
-DIM.zLower = DIM.post + (DIM.grommet - DIM.pcb) / 2;   // bottom face of the Lower PCB: 9.5
-DIM.zUpper = DIM.zLower + DIM.gap;                     // bottom face of the Upper PCB: 19.1
+// Soft mounting: the Lower board rides on the lower flanges of four grommets that stand directly on
+// the frame plate. Nothing rigid touches the board; the Upper board is carried by the Lower one.
+DIM.zLower = DIM.flange;                               // bottom face of the Lower PCB: 2.5
+DIM.zUpper = DIM.zLower + DIM.gap;                     // bottom face of the Upper PCB: 12.1
 
 // Same shape as the reference's window.FC_VIEW_METADATA.
 export const VIEW_METADATA = {
@@ -190,25 +194,43 @@ function cyl(r, z0, z1, mat, seg = 28) {
   m.rotation.x = Math.PI / 2; m.position.z = (z0 + z1) / 2;
   return m;
 }
-// Four frame posts, rubber grommets through the Lower board's 4 mm holes, washers and M2 screws.
-// All carry the reference's role 'provisional_hardware' (lifted together when the stack is exploded).
-export function makeMountHardware() {
-  const steel = new THREE.MeshStandardMaterial({ color: 0x8d9299, metalness: 0.85, roughness: 0.38 });
-  const black = new THREE.MeshStandardMaterial({ color: 0x25272b, metalness: 0.6, roughness: 0.45 });
-  const rubber = new THREE.MeshStandardMaterial({ color: 0x8a1a1f, metalness: 0, roughness: 0.85 });
-  const zb = DIM.zLower, zt = DIM.zLower + DIM.pcb, z0 = DIM.post, z1 = DIM.post + DIM.grommet, out = [];
-  // grommet profile (radius, z): lower flange, 4 mm neck through the PCB, upper flange
-  const prof = [[1.05, z0], [2.5, z0], [2.75, z0 + 0.3], [2.75, zb - 0.05], [2.0, zb - 0.05], [2.0, zt + 0.05],
-    [2.75, zt + 0.05], [2.75, z1 - 0.3], [2.5, z1], [1.05, z1]].map(([r, z]) => new THREE.Vector2(r, z));
+/* Soft mounting, Matek style: a silicone grommet pressed into each of the Lower board's four 4 mm
+ * holes (20 x 20 mm pattern), an M2 screw with a washer through each grommet into the frame. The
+ * grommet is a revolved profile: lower flange standing on the frame plate, 4 mm waist in the PCB,
+ * upper flange under the washer, M2 bore. The Upper board has no holes here; it is not fastened to
+ * the frame and sits on the Lower board's three standoffs.
+ *   tip  Z of the screw tip: below the bottom plate on the drone page, 0 where there is no frame.
+ * Returns objects for groups.fc: four grommets (role 'grommet', board 'LowerPower': they stay in the
+ * board) and four screws with washers (role 'provisional_hardware': lifted when the stack is exploded).
+ */
+export const GROMMET_COLOUR = 0xe4472b;                               // orange-red silicone
+export function grommetProfile() {
+  const R = DIM.flangeDia / 2, w = DIM.grommetHole / 2 - 0.06, bore = 1.05, f = 0.7, clear = 0.12;
+  const z0 = DIM.zLower - DIM.flange, z1 = z0 + DIM.grommet, zb = DIM.zLower - clear, zt = DIM.zLower + DIM.pcb + clear;
+  const pts = [], arc = (cr, cz, a0, a1) => { for (let i = 0; i <= 6; i++) { const a = (a0 + (a1 - a0) * i / 6) * Math.PI / 180; pts.push(new THREE.Vector2(cr + f * Math.cos(a), cz + f * Math.sin(a))); } };
+  pts.push(new THREE.Vector2(bore, z0));
+  arc(R - f, z0 + f, -90, 0); arc(R - f, zb - f, 0, 90);              // lower flange, rounded rim
+  pts.push(new THREE.Vector2(w, zb), new THREE.Vector2(w, zt));       // waist through the PCB
+  arc(R - f, zt + f, -90, 0); arc(R - f, z1 - f, 0, 90);              // upper flange
+  pts.push(new THREE.Vector2(bore, z1));
+  return pts;
+}
+export function makeMountHardware({ tip = 0 } = {}) {
+  const steel = new THREE.MeshStandardMaterial({ color: 0xb4b9c0, metalness: 0.85, roughness: 0.34 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x1b1d20, metalness: 0.5, roughness: 0.6 });
+  const rubber = new THREE.MeshStandardMaterial({ color: GROMMET_COLOUR, metalness: 0, roughness: 0.92, envMapIntensity: 0.25 });
+  const z1 = DIM.zLower - DIM.flange + DIM.grommet, out = [], prof = grommetProfile();
   for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
-    const g = new THREE.Group();
-    const gr = new THREE.Mesh(new THREE.LatheGeometry(prof, 32), rubber);
+    const gr = new THREE.Mesh(new THREE.LatheGeometry(prof, 40), rubber);
     gr.rotation.x = Math.PI / 2;                                       // lathe axis Y -> Z
-    g.add(cyl(1.73, 0, z0, steel, 6), gr, cyl(2.25, z1, z1 + 0.3, steel), cyl(1.9, z1 + 0.3, z1 + 2.3, black), cyl(1.0, z0 - 3, z1 + 0.3, black, 16));
-    g.position.set(sx * DIM.hole, sy * DIM.hole, 0);
-    g.name = 'Hardware/post, grommet and screw (illustrative)';
-    g.userData = { group: 'fc', role: 'provisional_hardware', dupontHeader: false, illustrative: true };
-    out.push(g);
+    const g = new THREE.Group(); g.add(gr);
+    g.name = 'Hardware/silicone grommet (illustrative)';
+    g.userData = { group: 'fc', board: 'LowerPower', role: 'grommet', dupontHeader: false, illustrative: true };
+    const sc = new THREE.Group();                                      // washer, socket-head cap, hex socket, shank
+    sc.add(cyl(2.4, z1, z1 + 0.3, steel), cyl(1.9, z1 + 0.3, z1 + 2.3, steel), cyl(0.95, z1 + 2.26, z1 + 2.32, dark, 6), cyl(1.0, tip, z1 + 0.3, steel, 16));
+    sc.name = 'Hardware/M2 screw and washer (illustrative)';
+    sc.userData = { group: 'fc', role: 'provisional_hardware', dupontHeader: false, illustrative: true };
+    for (const o of [g, sc]) { o.position.set(sx * DIM.hole, sy * DIM.hole, 0); out.push(o); }
   }
   return out;
 }
@@ -255,7 +277,7 @@ function routeCable(upper, service, radius = 1.25) {
 /* Load the boards and add them to groups.fc (the name and role of the reference's
  * addCurrentNativeAssembly). Options:
  *   boards     which GLBs to load, default all three
- *   hardware   add the illustrative posts, grommets and screws (default true)
+ *   hardware   add the illustrative grommets and M2 screws (default true)
  *   serviceSite 'drone' = loose on the ground grid beside the frame, on its 100 mm cable;
  *               'bench' = alone at the origin, lying on the floor plane (Board page)
  *   base       URL of the models folder
@@ -274,7 +296,7 @@ export async function addStackF765Assembly(groups, options = {}) {
     for (const g of [b.body, b.headers]) { g.position.z = BOARDS[id].z; groups.fc.add(g); }
     counts.headers += b.headers.children.length;
   }
-  if (loaded.lower && options.hardware !== false) for (const h of makeMountHardware()) { groups.fc.add(h); counts.hardware++; }
+  if (loaded.lower && options.hardware !== false) for (const h of makeMountHardware({ tip: options.serviceSite === 'drone' ? -6.8 : 0 })) { groups.fc.add(h); counts.hardware++; }
   if (loaded.service) {
     const s = loaded.service;
     if (options.serviceSite === 'drone') {
