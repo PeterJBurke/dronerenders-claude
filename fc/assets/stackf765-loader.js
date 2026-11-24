@@ -10,7 +10,7 @@
  * Every object handed back carries the userData the reference page scripts expect:
  *   board: 'UpperLogic' | 'LowerPower' | 'Service' | undefined (mounting screws)
  *   role:  'board' | 'header' | 'grommet' | 'provisional_hardware' | 'service_illustration'
- *   dupontHeader: true for the 0.1 inch right-angle headers (Upper J1, Lower J2)
+ *   dupontHeader: true for the 0.1 inch right-angle header (Upper J1; Lower J2 is unpopulated solder holes)
  */
 import { GLTFLoader } from './GLTFLoader.js';
 import { mergeGeometries } from './BufferGeometryUtils.js';

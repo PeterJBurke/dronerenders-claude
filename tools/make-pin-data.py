@@ -3,7 +3,7 @@
 
 Reads the pin tables straight out of the design sources (no pin names are typed in here):
   gen/upper.py  J1_ROWS (3x12 header), SVC (service cable)
-  gen/lower.py  J2_ROWS / J2_LABELS (3x9 header), B2B_COLS (board-to-board), PAD_X (power pads)
+  gen/lower.py  J2_ROWS / J2_LABELS (3x9 solder holes), B2B_COLS (board-to-board), PAD_X (power pads)
 
 Usage: tools/make-pin-data.py [/path/to/stackf765-checkout]   (default /root/fcclaude)
 """
@@ -79,11 +79,12 @@ for row in "ABC":
         fn = "Flight-controller 5 V rail" if net == "+5V" else describe(net)
         rows.append({"pin": f"{row}{i + 1}", "net": sig(label, net), "function": fn})
 ncol = len(lo["J2_LABELS"])
-groups.append({"board": "LowerPower", "ref": "J2", "title": f"Lower · J2 · 3×{ncol} header",
-               "note": "Right-angle 0.1 inch header; each column takes a standard 3-pin servo / ESC plug: signal / 5 V / "
-                       "ground from the top pin down. Seen from above with the header pointing away from you, column 1 is "
-                       "on the left. Row A (highest pins, signal): " + " ".join(lo["J2_LABELS"]) + ". Row B (middle): 5 V, "
-                       "or PI5V in the two PI5V columns. Row C (nearest the board): all GND.", "rows": rows})
+groups.append({"board": "LowerPower", "ref": "J2", "title": f"Lower · J2 · 3×{ncol} solder holes",
+               "note": "Solder holes on the 0.1 inch grid; no header is fitted, so nothing tall sits under the Upper "
+                       "board's header pins. Solder one 3-wire servo / ESC lead per column: signal / 5 V / ground from "
+                       "the inner hole to the board edge. Seen from above with the front edge away from you, column 1 is "
+                       "on the left. Row A (inner, signal): " + " ".join(lo["J2_LABELS"]) + ". Row B (middle): 5 V, "
+                       "or PI5V in the two PI5V columns. Row C (nearest the edge): all GND.", "rows": rows})
 pads = sorted(lo["PAD_X"], key=lambda k: lo["PAD_X"][k])
 PADFN = {"BAT+": "Battery positive", "BAT-": "Battery negative", "ESC+": "ESC positive", "ESC-": "ESC negative"}
 groups.append({"board": "LowerPower", "ref": "POWER", "title": "Lower · Power solder pads",
