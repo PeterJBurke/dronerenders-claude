@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>StackF765 — Header options</title>
+<style>
+:root{--bg:#f7f8f9;--fg:#15181c;--muted:#4e5661;--panel:#fff;--line:#c3c8cf}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
+body .page-links{position:static;display:flex;flex-wrap:wrap;gap:6px;padding:14px}
+main{max-width:1240px;margin:0 auto;padding:4px 16px 40px}
+.text{max-width:820px}
+h1{font-size:24px;line-height:1.25;margin:10px 0 6px}
+h2{font-size:18px;margin:30px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+p{margin:8px 0}
+.lead{color:var(--muted)}
+main a{color:#126596}
+figure{margin:0}
+figure img{display:block;width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:6px}
+figure a{display:block;cursor:zoom-in}
+figcaption{font-size:13px;color:var(--muted);margin-top:5px}
+.imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0}
+.scroll{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel)}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#e6edf5;color:#29425b;font-weight:600}
+td.c{font-weight:600}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:3px 14px;margin:8px 0 12px;max-width:820px}
+dt{font-weight:600}dd{margin:0}
+.warn{background:#fff0d5;color:#5c3400;border:1px solid #e3c48b;border-radius:6px;padding:9px 12px;margin:12px 0;max-width:820px}
+.small{font-size:13px;color:var(--muted)}
+@media(max-width:900px){.imgs{grid-template-columns:1fr}}
+@media(max-width:600px){h1{font-size:21px}table{font-size:13px}th,td{padding:5px}dl{grid-template-columns:1fr;gap:0}dd{margin:0 0 6px}}
+</style><link href="assets/controls.css" rel="stylesheet"/></head><body>
+<div class="page-links"><a href="./">Drone</a><a href="board.html">Board</a><a href="handsolder.html">Hand soldering</a><a href="testplan.html">Test plan</a><a aria-current="page" href="header-options.html">Header options</a></div>
+<main>
+<h1>StackF765: lower Dupont header options</h1>
+<div class="warn"><b>Decision pending (2026-11-25):</b> these are options, not the current design. The current boards have bare solder holes at this position.</div>
+<p class="lead text">StackF765: four ways to fit a Dupont pin header on the lower board. Clearance is between the upper Dupont header solder tails and the nearest metal of the lower Dupont header, at nominal dimensions. All dimensions in mm. Click an image for full size.</p>
+<div class="scroll"><table><tr><th>Option</th><th>Clearance</th><th>What changes</th><th>The catch</th></tr>
+<tr><td><a href="#o1">1. Underside</a></td><td class="c">5.2 mm</td><td>No board change, same Gerbers.</td><td>Hangs 7.5 mm below the lower board at the front; the frame must be open there.</td></tr>
+<tr><td><a href="#o2">2. 11 mm gap</a></td><td class="c">3.0 mm</td><td>Standoffs (11 mm) and the upper board-to-board connector change.</td><td>Stack 3 mm taller; the new connector is not stocked by JLCPCB.</td></tr>
+<tr><td><a href="#o3">3. Cut tails</a></td><td class="c">0.9 mm (0.26 worst case)</td><td>None.</td><td>Tight, and depends on trimming every board.</td></tr>
+<tr><td><a href="#o4">4. Two-row</a></td><td class="c">2.5 mm</td><td>Lower board re-routed.</td><td>No 5 V pins on this connector.</td></tr>
+<tr><td><a href="#o0">As first designed (rejected)</a></td><td class="c">0.0 mm</td><td>&ndash;</td><td>Tail tips level with the pin tops, 0.63 mm to the side.</td></tr>
+</table></div>
+<h2 id="o1">1. Underside</h2>
+<p>The same 3x9 right-angle header soldered on the bottom of the lower board, pins forward.</p>
+<dl><dt>Clearance</dt><dd>5.2 mm nominal</dd><dt>What changes</dt><dd>No board change, same Gerbers. Same holes and pin-to-net map; the rows are upside down seen from the front (signal lowest).</dd><dt>The catch</dt><dd>Hangs 7.5 mm below the lower board at the front; the frame must be open there.</dd></dl>
+<div class="imgs">
+<figure><a href="header-options/1-underside-a-three-quarter.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/1-underside-a-three-quarter.png" alt="Three-quarter view" loading="lazy"></a><figcaption>Three-quarter view</figcaption></figure>
+<figure><a href="header-options/1-underside-b-side.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/1-underside-b-side.png" alt="Side view, clearance" loading="lazy"></a><figcaption>Side view, clearance</figcaption></figure>
+<figure><a href="header-options/1-underside-c-front.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/1-underside-c-front.png" alt="Front view, pins and tails" loading="lazy"></a><figcaption>Front view, pins and tails</figcaption></figure></div>
+<h2 id="o2">2. 11 mm gap</h2>
+<p>Header on top of the lower board; boards moved 3 mm further apart.</p>
+<dl><dt>Clearance</dt><dd>3.0 mm nominal</dd><dt>What changes</dt><dd>Standoffs (11 mm) and the upper board-to-board connector change.</dd><dt>The catch</dt><dd>Stack 3 mm taller; the new connector is not stocked by JLCPCB.</dd></dl>
+<div class="imgs">
+<figure><a href="header-options/2-gap-11mm-a-three-quarter.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/2-gap-11mm-a-three-quarter.png" alt="Three-quarter view" loading="lazy"></a><figcaption>Three-quarter view</figcaption></figure>
+<figure><a href="header-options/2-gap-11mm-b-side.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/2-gap-11mm-b-side.png" alt="Side view, clearance" loading="lazy"></a><figcaption>Side view, clearance</figcaption></figure>
+<figure><a href="header-options/2-gap-11mm-c-front.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/2-gap-11mm-c-front.png" alt="Front view, pins and tails" loading="lazy"></a><figcaption>Front view, pins and tails</figcaption></figure></div>
+<h2 id="o3">3. Cut tails</h2>
+<p>Header on top, 8 mm gap; the upper Dupont header solder tails are cut to 0.5 mm.</p>
+<dl><dt>Clearance</dt><dd>0.9 mm (0.26 worst case) nominal</dd><dt>What changes</dt><dd>None.</dd><dt>The catch</dt><dd>Tight, and depends on trimming every board.</dd></dl>
+<div class="imgs">
+<figure><a href="header-options/3-cut-tails-a-three-quarter.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/3-cut-tails-a-three-quarter.png" alt="Three-quarter view" loading="lazy"></a><figcaption>Three-quarter view</figcaption></figure>
+<figure><a href="header-options/3-cut-tails-b-side.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/3-cut-tails-b-side.png" alt="Side view, clearance" loading="lazy"></a><figcaption>Side view, clearance</figcaption></figure>
+<figure><a href="header-options/3-cut-tails-c-front.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/3-cut-tails-c-front.png" alt="Front view, pins and tails" loading="lazy"></a><figcaption>Front view, pins and tails</figcaption></figure></div>
+<h2 id="o4">4. Two-row</h2>
+<p>A 2x9 right-angle header on top, in the two hole rows nearest the edge; 8 mm gap.</p>
+<dl><dt>Clearance</dt><dd>2.5 mm nominal</dd><dt>What changes</dt><dd>Lower board re-routed.</dd><dt>The catch</dt><dd>No 5 V pins on this connector.</dd></dl>
+<div class="imgs">
+<figure><a href="header-options/4-two-row-a-three-quarter.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/4-two-row-a-three-quarter.png" alt="Three-quarter view" loading="lazy"></a><figcaption>Three-quarter view</figcaption></figure>
+<figure><a href="header-options/4-two-row-b-side.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/4-two-row-b-side.png" alt="Side view, clearance" loading="lazy"></a><figcaption>Side view, clearance</figcaption></figure>
+<figure><a href="header-options/4-two-row-c-front.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/4-two-row-c-front.png" alt="Front view, pins and tails" loading="lazy"></a><figcaption>Front view, pins and tails</figcaption></figure></div>
+<h2 id="o0">Reference: as first designed (rejected)</h2>
+<p>3-row header on top of the lower board, 8 mm gap, upper Dupont header solder tails as supplied (1.4 mm). The tail tips are level with the tops of the lower Dupont header pins and 0.63 mm to the side of them.</p>
+<div class="imgs">
+<figure><a href="header-options/0-as-first-designed-a-three-quarter.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/0-as-first-designed-a-three-quarter.png" alt="Three-quarter view" loading="lazy"></a><figcaption>Three-quarter view</figcaption></figure>
+<figure><a href="header-options/0-as-first-designed-b-side.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/0-as-first-designed-b-side.png" alt="Side view, clearance" loading="lazy"></a><figcaption>Side view, clearance</figcaption></figure>
+<figure><a href="header-options/0-as-first-designed-c-front.png" target="_blank" rel="noopener"><img width="1600" height="1000" src="header-options/0-as-first-designed-c-front.png" alt="Front view, pins and tails" loading="lazy"></a><figcaption>Front view, pins and tails</figcaption></figure></div>
+<h2>About the pictures</h2>
+<p class="small text">The two boards, the upper Dupont header with its solder tails, the standoffs and the board-to-board connector are the project's own 3D models. The lower Dupont header, the Dupont plugs and wires are drawn from the header drawing's dimensions (0.64 mm pins at 1.21 / 3.75 / 6.29 mm, 7.5 mm body; 5.0 mm body for the two-row part). In option 1's side view the frame plate is drawn 2.5 mm below the lower board (grommet height); its thickness and where it ends are illustrative. In option 2 the top 3 mm of each standoff and the taller board-to-board connector are drawn stand-ins. In option 3 the model's tails are clipped at 0.5 mm. In the front views the lower Dupont header's plastic body is drawn transparent so the pins and tails behind it can be seen. Side and front views are parallel projections, to scale.</p>
+</main>
+</body></html>

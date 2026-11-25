@@ -100,7 +100,8 @@ document.getElementById('closeAll').onclick=function(){all(false)};
 
 NAV = ('<div class="page-links"><a href="./">Drone</a><a href="board.html">Board</a>'
        '<a href="handsolder.html">Hand soldering</a>'
-       '<a aria-current="page" href="testplan.html">Test plan</a></div>')
+       '<a aria-current="page" href="testplan.html">Test plan</a>'
+       '<a href="header-options.html">Header options</a></div>')
 
 # Plain-language summary shown first. Written by hand from sections 1, 3 and 9 of the plan;
 # SUMMARY_FACTS lists the source phrases it relies on, so a changed plan stops the build.
