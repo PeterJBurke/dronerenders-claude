@@ -120,6 +120,10 @@ SUMMARY_FACTS = [
     "| With hardware (3.3), excluding flight | about 26 |",
 ]
 
+# The plan itself is not rewritten for revision C; the page only says so.
+REV_NOTE = ('<p class="warn"><b>Note:</b> this plan was written against revision B; the boards are now revision C '
+            '(both Dupont headers on the upper board, none on the lower board).</p>')
+
 SUMMARY = """
 <section class="summary" id="summary">
 <h2>Summary</h2>
@@ -231,6 +235,7 @@ def main():
 
     page = []
     page.append(f"<h1>StackF765: {html.escape(h1.replace('StackF765 ', ''))}</h1>")
+    page.append(REV_NOTE)
     page.append(SUMMARY)
 
     # Everything from the plan: collapsible, with a table of contents.

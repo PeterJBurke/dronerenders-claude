@@ -10,7 +10,7 @@
  * Every object handed back carries the userData the reference page scripts expect:
  *   board: 'UpperLogic' | 'LowerPower' | 'Service' | undefined (mounting screws)
  *   role:  'board' | 'header' | 'grommet' | 'provisional_hardware' | 'service_illustration'
- *   dupontHeader: true for the 0.1 inch right-angle header (Upper J1; Lower J2 is unpopulated solder holes)
+ *   dupontHeader: true for the 0.1 inch right-angle headers (revision C: Upper J1 front and J2 rear; the Lower board has none)
  */
 import { GLTFLoader } from './GLTFLoader.js';
 import { mergeGeometries } from './BufferGeometryUtils.js';
@@ -48,7 +48,7 @@ window.FC_VIEW_METADATA = VIEW_METADATA;
 
 const BOARDS = {
   lower: { key: 'LowerPower', name: 'Lower', headers: [], z: DIM.zLower },
-  upper: { key: 'UpperLogic', name: 'Upper', headers: ['J1'], z: DIM.zUpper },
+  upper: { key: 'UpperLogic', name: 'Upper', headers: ['J1', 'J2'], z: DIM.zUpper },
   service: { key: 'Service', name: 'Service', headers: [], z: 0 },
 };
 // Where the drone page shows the service board: a loose accessory, not fixed to the frame. It lies

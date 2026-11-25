@@ -33,12 +33,12 @@ figure.mid{max-width:560px}
 <div class="page-links"><a href="./">Drone</a><a href="board.html">Board</a><a aria-current="page" href="handsolder.html">Hand soldering</a><a href="testplan.html">Test plan</a><a href="header-options.html">Header options</a></div>
 <main>
 <h1>StackF765: hand soldering</h1>
-<p class="lead">JLCPCB fits everything except one part: the 3 × 12 right-angle header on the upper board (<code>J1</code>). You solder that header, the wires into the lower board, and the power wires.</p>
+<p class="lead">Revision C. JLCPCB fits everything except the two Dupont headers on the upper board. You solder those two headers and the four power wires on the lower board. Nothing else: the lower board has no pin header, and the board-to-board connector comes fitted.</p>
 
 <h2>What to buy (5 sets)</h2>
 <div class="scroll"><table>
 <tr><th>Part</th><th>Qty for 5</th><th>Part number</th><th>Price (approx.)</th></tr>
-<tr><td>3 × 3 right-angle header, 2.54 mm (4 per board)</td><td>20 (buy 30)</td><td>HCTL PZ254-3-03-W-2.5-G0, <a href="https://lcsc.com/product-detail/Pin-Headers_HCTL-PZ254-3-03-W-2-5-G0_C7429379.html" rel="noopener">LCSC C7429379</a>.<br/>Or one Samtec TSW-112-08-G-T-RA per board</td><td>$7 for 30.<br/>Samtec: $3.47 each</td></tr>
+<tr><td>3 × 3 right-angle header, 2.54 mm (7 per board: 4 front, 3 rear)</td><td>35 (buy 45)</td><td>HCTL PZ254-3-03-W-2.5-G0, <a href="https://lcsc.com/product-detail/Pin-Headers_HCTL-PZ254-3-03-W-2-5-G0_C7429379.html" rel="noopener">LCSC C7429379</a>.<br/>For the front header only, one Samtec TSW-112-08-G-T-RA can replace four pieces</td><td>About $0.23 each ($7 for 30).<br/>Samtec: $3.47 each</td></tr>
 <tr><td>M2 × 4 mm pan-head screw</td><td>15</td><td>Generic</td><td>$2.40 per 100</td></tr>
 <tr><td>JST-SH 6-pin cable, 100 mm, wired 1:1</td><td>5 (buy 7)</td><td>JST A06SR06SR30K102A</td><td>$1.60 each</td></tr>
 <tr><td>Silicone grommet, “M4 to M3”, and brass “M3 to M2” insert</td><td>20 + 20</td><td>Generic, Matek style</td><td>$1.90 per 5; $2 per 10</td></tr>
@@ -50,64 +50,59 @@ figure.mid{max-width:560px}
 
 <h2>Tools</h2>
 <ul>
-<li>Soldering iron: a small chisel tip for the header and wires, a large tip for the power pads.</li>
+<li>Soldering iron: a small chisel tip for the headers, a large tip for the power pads.</li>
 <li>Solder and no-clean flux. Do not wash the upper board or use an ultrasonic cleaner.</li>
 <li>Multimeter with continuity beeper.</li>
-<li>Tape or putty to hold the header, flush cutters, wire strippers, small screwdriver.</li>
+<li>Tape or putty to hold the headers, flush cutters (needed for the rear header tails), wire strippers, small screwdriver.</li>
 </ul>
 
-<h2>1. Upper board: the header (J1)</h2>
+<h2>1. Upper board: the two Dupont headers</h2>
 <div class="pair">
-<figure><img alt="One 3 x 3 right-angle header piece, seen from behind and from the front" height="352" src="handsolder/part-header-3x3.jpg" width="800"/><figcaption>One 3 × 3 piece. Four go side by side.</figcaption></figure>
-<figure><img alt="Upper board with the 3 x 12 header outlined at the front edge, top side" height="675" src="handsolder/where-upper-j1-header.jpg" width="900"/><figcaption>Top side, front edge. The board arrives with bare holes here.</figcaption></figure>
+<figure><img alt="One 3 x 3 right-angle header piece, seen from behind and from the front" height="352" src="handsolder/part-header-3x3.jpg" width="800"/><figcaption>One 3 × 3 piece. Four make the front header, three the rear.</figcaption></figure>
+<figure><img alt="Upper board, top side, with the 3 x 12 front header and the 3 x 9 rear header outlined" height="675" src="handsolder/where-upper-headers.jpg" width="900"/><figcaption>Top side. Both headers are shown fitted; the board arrives with bare holes at both edges.</figcaption></figure>
 </div>
+<p><b>Upper front Dupont header</b> (3 × 12, four pieces, front edge), then <b>upper rear Dupont header</b> (3 × 9, three pieces, rear edge). Same steps for both:</p>
 <ol>
-<li>Put the four pieces in from the <b>top side</b>, side by side with no gaps. Short legs go through the 36 holes; long pins point off the board.</li>
-<li>The plastic body hangs just beyond the board edge. Tape it down flat.</li>
+<li>Put the pieces in from the <b>top side</b>, side by side with no gaps. Short legs go through the holes; long pins point off the board.</li>
+<li>The plastic body hangs just beyond the board edge. Tape it down flat, its lower face level with the top of the board.</li>
 <li>Turn the board over. Solder one leg at each end.</li>
 <li>Check the row is flat and square. Reheat a leg to adjust.</li>
-<li>Solder the other 34 legs. Look for bridges between neighbours.</li>
-<li>Do not trim the tails.</li>
+<li>Solder the remaining legs (36 in all at the front, 27 at the rear). Look for bridges between neighbours.</li>
+<li><b>Rear header only: cut the tails flush.</b> They hang above the power-wire joints on the lower board. Leave the front header’s tails as they are.</li>
 </ol>
-
-<h2>2. Lower board: wires into the J2 holes</h2>
-<div class="warn"><b>Never fit a pin header here.</b> Its pins would sit directly under the pins of the upper board’s header.</div>
-<figure><img alt="The 3 x 9 solder holes at the front edge of the lower board, with columns M1 to M6, LED, PI5V, PI5V and rows ground, 5 V, signal labelled" height="392" src="handsolder/j2-holes-labelled.jpg" width="1200"/><figcaption>Seen from above, front edge away from you. One column is one lead. The names are printed on the board.</figcaption></figure>
+<p>Upper rear Dupont header, looking into the pins from behind. One column takes one 3-pin servo plug.</p>
 <div class="scroll"><table class="pins">
-<tr><th>Row</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr>
-<tr><td>Nearest the edge</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td></tr>
-<tr><td>Middle</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td><td>PI5V</td><td>PI5V</td></tr>
-<tr><td>Inner (signal)</td><td>M1</td><td>M2</td><td>M3</td><td>M4</td><td>M5</td><td>M6</td><td>LED</td><td>PI5V</td><td>PI5V</td></tr>
+<tr><th>Pin</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr>
+<tr><td>Top (signal)</td><td>PI5V</td><td>PI5V</td><td>M1</td><td>M2</td><td>M3</td><td>M4</td><td>M5</td><td>M6</td><td>LED</td></tr>
+<tr><td>Middle (5 V)</td><td>PI5V</td><td>PI5V</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td></tr>
+<tr><td>Bottom (ground)</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td></tr>
 </table></div>
-<p class="small">M1–M6: motor or servo outputs. LED: LED strip data. PI5V: separate 5 V, 3 A supply for a companion computer.</p>
-<ol>
-<li>Push each wire in from the <b>top</b> and solder it. Holes are 1.0 mm on a 2.54 mm grid.</li>
-<li><b>3 mm rule:</b> for the first 8 mm behind the front edge, keep every joint and wire within 3 mm of the board. Lead the wires away low.</li>
-</ol>
-<figure><img alt="Side view of the front edge: the upper header's tails hang over the lower board's holes; wires must stay inside a zone 3 mm high and 8 mm deep" height="546" src="handsolder/diagram-j2-wire-zone.png" width="1406"/><figcaption>Wires and joints stay inside the yellow zone. The upper header’s tails come down from above.</figcaption></figure>
+<p class="small">M1–M6: motor or servo outputs. LED: LED strip data. PI5V: separate 5 V, 3 A supply for a companion computer. The seven 5V pins: under 2 A in total.</p>
 
-<h2>3. Lower board: power wires</h2>
-<figure class="mid"><img alt="Lower board with the four power pads outlined on the rear edge: BAT+, ESC+, ESC-, BAT-" height="675" src="handsolder/where-lower-power-pads.jpg" width="900"/><figcaption>Rear edge, pads towards you, left to right: BAT+ ESC+ ESC− BAT−. The black socket in the middle is fitted by JLCPCB.</figcaption></figure>
+<h2>2. Lower board: power wires</h2>
+<figure class="mid"><img alt="Lower board with the four power pads outlined on the rear edge: BAT+, ESC+, ESC-, BAT-" height="675" src="handsolder/where-lower-power-pads.jpg" width="900"/><figcaption>Rear edge, pads towards you, left to right: BAT+ ESC+ ESC− BAT−. The black socket is fitted by JLCPCB.</figcaption></figure>
 <ol>
 <li>Tin the four pads and the wire ends.</li>
 <li>Solder with the large tip. Order: <code>BAT+</code> <code>ESC+</code> <code>ESC−</code> <code>BAT−</code>.</li>
-<li>Keep the wires flat and pointing rearward so they clear the upper board.</li>
+<li>Keep the wires flat and pointing rearward, and <b>every joint under 5 mm tall</b>: the upper rear Dupont header sits directly above these pads.</li>
 </ol>
 <div class="warn"><b>No reverse-polarity protection.</b> 2S–3S battery only. Check polarity twice with a meter before connecting one.</div>
+<div class="warn"><b>Solder nothing else to the lower board.</b> It has no pin header and no header holes.</div>
 
-<h2>4. Stack the boards</h2>
+<h2>3. Stack the boards</h2>
 <ol>
 <li>Peel the clear film off the black socket on the lower board.</li>
 <li>Press the upper board down onto the three standoffs.</li>
 <li>Fasten with three M2 × 4 mm screws. No longer.</li>
+<li>microSD card: the socket is under the upper board. Slide the card in from the left-hand edge, between the boards, contacts facing up.</li>
 </ol>
 
-<h2>5. Meter check before first power</h2>
+<h2>4. Meter check before first power</h2>
 <p>Stack assembled, no battery, no USB. Use the continuity beeper.</p>
 <div class="scroll"><table>
 <tr><th>Between</th><th>Must read</th></tr>
 <tr><td><code>PI5V</code> and <code>G</code></td><td>Not shorted</td></tr>
-<tr><td>Upper header <code>5V</code> pins and <code>M1</code>–<code>M6</code>, <code>LED</code></td><td>Not connected</td></tr>
+<tr><td>Upper rear Dupont header: <code>5V</code> pins and <code>M1</code>–<code>M6</code>, <code>LED</code></td><td>Not connected</td></tr>
 <tr><td><code>BAT+</code> and <code>BAT−</code></td><td>Not shorted</td></tr>
 <tr><td>Battery plug + and <code>BAT+</code> pad</td><td>Connected (polarity right)</td></tr>
 </table></div>
@@ -115,7 +110,7 @@ figure.mid{max-width:560px}
 <h2>More detail</h2>
 <ul>
 <li><a href="https://github.com/PeterJBurke/stackf765/blob/main/docs/assembly.md" rel="noopener">Assembly</a>: grommets, service cable, mounting.</li>
-<li><a href="https://github.com/PeterJBurke/stackf765/blob/main/docs/pinout.md" rel="noopener">Pinout</a>: every pin of the upper header.</li>
+<li><a href="https://github.com/PeterJBurke/stackf765/blob/main/docs/pinout.md" rel="noopener">Pinout</a>: every pin of both headers.</li>
 <li><a href="https://github.com/PeterJBurke/stackf765/blob/main/docs/bringup.md" rel="noopener">Bring-up</a>: checks for each board and first power.</li>
 <li><a href="board.html">Board view</a>: turn the boards around in 3D.</li>
 </ul>

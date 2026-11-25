@@ -4,7 +4,8 @@
 #   ./sync-models.sh [/path/to/stackf765-checkout]      default: /root/fcclaude
 #
 # Copies docs/boards/{lower,upper,service}/*.glb (the GLB files KiCad exports from the design)
-# into fc/models/ and regenerates fc/assets/pin-data.js from gen/upper.py and gen/lower.py.
+# into fc/models/ and regenerates fc/assets/pin-data.js from gen/upper.py and gen/lower.py
+# (revision C: both Dupont headers are on the upper board; the lower board has none).
 # Nothing is committed or pushed; review `git status`, then commit and push yourself.
 set -euo pipefail
 SRC="${1:-/root/fcclaude}"

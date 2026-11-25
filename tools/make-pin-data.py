@@ -2,8 +2,8 @@
 """Rebuild fc/assets/pin-data.js from the StackF765 design generators.
 
 Reads the pin tables straight out of the design sources (no pin names are typed in here):
-  gen/upper.py  J1_ROWS (3x12 header), SVC (service cable)
-  gen/lower.py  J2_ROWS / J2_LABELS (3x9 solder holes), B2B_COLS (board-to-board), PAD_X (power pads)
+  gen/upper.py  J1_ROWS (3x12 front header), J2_ROWS (3x9 rear header), SVC (service cable)
+  gen/lower.py  B2B_COLS (board-to-board), PAD_X (power pads); the lower board has no pin header
 
 Usage: tools/make-pin-data.py [/path/to/stackf765-checkout]   (default /root/fcclaude)
 """
@@ -26,8 +26,8 @@ def literals(path, names):
     return found
 
 
-up = literals(src / "gen/upper.py", ["J1_ROWS", "SVC"])
-lo = literals(src / "gen/lower.py", ["J2_ROWS", "J2_LABELS", "B2B_COLS", "PAD_X"])
+up = literals(src / "gen/upper.py", ["J1_ROWS", "J2_ROWS", "SVC"])
+lo = literals(src / "gen/lower.py", ["B2B_COLS", "PAD_X"])
 
 UARTS = [1, 2, 3, 4, 6, 7, 8]          # ArduPilot SERIAL1-7, from docs/pinout.md
 
@@ -68,30 +68,36 @@ rows = []
 for row in "CBA":
     for i, (label, net) in enumerate(up["J1_ROWS"][row]):
         rows.append({"pin": f"{row}{i + 1}", "net": sig(label, net), "function": describe(net)})
-groups.append({"board": "UpperLogic", "ref": "J1", "title": "Upper · J1 · 3×12 header",
-               "note": "Right-angle 0.1 inch header; all contacts face the front edge. Seen from above with the header "
-                       "pointing away from you, column 1 is on the left. Row A: " + ROWNOTE["A"] + ". Row B: " + ROWNOTE["B"] +
+groups.append({"board": "UpperLogic", "ref": "J1", "title": "Upper board · front Dupont header · 3×12",
+               "note": "Right-angle 0.1 inch header on the top side; all contacts face the front edge. Seen from above "
+                       "with the header pointing away from you, column 1 is on the left. Row A: " + ROWNOTE["A"] + ". Row B: " + ROWNOTE["B"] +
                        ". Row C: " + ROWNOTE["C"] + ". Pins marked 5V are powered only from the battery; pins marked 4V5 "
                        "are also powered from USB.", "rows": rows})
+# Rear header: gen/upper.py lists J2_ROWS left to right seen from above with the front edge away from you.
+# Columns are numbered here as docs/pinout.md does, looking into the pins from behind: column 1 = PI5V.
 rows = []
+ROWPOS = {"A": "top", "B": "middle", "C": "bottom"}
+ncol = len(up["J2_ROWS"]["A"])
+rear = {row: list(reversed(up["J2_ROWS"][row])) for row in "ABC"}
 for row in "ABC":
-    for i, (label, net) in enumerate(lo["J2_ROWS"][row]):
-        fn = "Flight-controller 5 V rail" if net == "+5V" else describe(net)
-        rows.append({"pin": f"{row}{i + 1}", "net": sig(label, net), "function": fn})
-ncol = len(lo["J2_LABELS"])
-groups.append({"board": "LowerPower", "ref": "J2", "title": f"Lower · J2 · 3×{ncol} solder holes",
-               "note": "Solder holes on the 0.1 inch grid; no header is fitted, so nothing tall sits under the Upper "
-                       "board's header pins. Solder one 3-wire servo / ESC lead per column: signal / 5 V / ground from "
-                       "the inner hole to the board edge. Seen from above with the front edge away from you, column 1 is "
-                       "on the left. Row A (inner, signal): " + " ".join(lo["J2_LABELS"]) + ". Row B (middle): 5 V, "
-                       "or PI5V in the two PI5V columns. Row C (nearest the edge): all GND.", "rows": rows})
+    for i, (label, net) in enumerate(rear[row]):
+        fn = "Flight-controller 5 V rail (under 2 A in total across this header)" if net == "+5V" else describe(net)
+        rows.append({"pin": f"{row}{i + 1}", "location": ROWPOS[row], "net": sig(label, net), "function": fn})
+groups.append({"board": "UpperLogic", "ref": "J2", "title": f"Upper board · rear Dupont header · 3×{ncol}",
+               "note": "Right-angle 0.1 inch header on the top side; all contacts face the rear edge. Looking into the "
+                       "pins from behind the board, the columns read " + " ".join(l for l, _ in rear["A"]) + " (column 1 "
+                       "to " + str(ncol) + "). Each column takes one 3-pin servo plug: top pin (row A) signal, middle pin "
+                       "(row B) 5 V, bottom pin (row C, nearest the board) ground. In the two PI5V columns the top and "
+                       "middle pins are both PI5V. Keep the 5 V row under 2 A in total.", "rows": rows})
 pads = sorted(lo["PAD_X"], key=lambda k: lo["PAD_X"][k])
 PADFN = {"BAT+": "Battery positive", "BAT-": "Battery negative", "ESC+": "ESC positive", "ESC-": "ESC negative"}
-groups.append({"board": "LowerPower", "ref": "POWER", "title": "Lower · Power solder pads",
-               "note": "Rear edge, seen from above: " + "  ".join(pads) + ". 2S–3S LiPo, 50 A continuous.",
+groups.append({"board": "LowerPower", "ref": "POWER", "title": "Lower board · power wire pads",
+               "note": "Rear edge, seen from above: " + "  ".join(pads) + ". 2S–3S LiPo, 50 A continuous. The only hand-soldered "
+                       "joints on the lower board; it has no pin header and no header holes. Keep each joint under 5 mm "
+                       "tall: the upper rear Dupont header sits above these pads.",
                "rows": [{"pin": p, "net": p, "function": PADFN[p]} for p in pads]})
 SVCLABEL = {"USB_DM": "D-", "USB_DP": "D+", "BUZ_OUT": "BUZ", "BOOT0": "BOOT"}
-groups.append({"board": "UpperLogic", "ref": "J5", "title": "Service cable · Upper J5 ↔ Service J2",
+groups.append({"board": "UpperLogic", "ref": "J5", "title": "Service cable · upper board ↔ service board",
                "note": "JST-SH 1.0 mm, six pins, 100 mm cable wired pin 1 to pin 1. Same pin order on both ends. The order is "
                        "reversal-safe: a cable wired 6-to-1 by mistake does no damage.",
                "rows": [{"pin": str(p), "net": sig(SVCLABEL.get(n, n), n), "function": describe(n)} for p, n in sorted(up["SVC"].items())]})
@@ -99,12 +105,12 @@ rows = []
 for c, (top, bottom) in enumerate(lo["B2B_COLS"]):
     rows.append({"pin": str(2 * c + 1), "net": top, "function": describe(top)})
     rows.append({"pin": str(2 * c + 2), "net": bottom, "function": describe(bottom)})
-groups.append({"board": "UpperLogic", "ref": "J3", "title": "Between boards · Upper J3 ↔ Lower J1",
+groups.append({"board": "UpperLogic", "ref": "J3", "title": "Board-to-board connector · upper ↔ lower",
                "note": "20 contacts, 2×10 at 1.27 mm pitch: Samtec FTSH-110-04-F-DV-TR header on the Upper board mates with SFMC-110-02-L-D-K-TR socket on the Lower; both are fitted by JLCPCB. Same-number contacts mate. Not an external connector.", "rows": rows})
 
 data = {
     "metadata": {
-        "board": "StackF765", "revision": "B", "processor": "STM32F765VIT6", "ardupilot_board_name": "StackF765",
+        "board": "StackF765", "revision": "C", "processor": "STM32F765VIT6", "ardupilot_board_name": "StackF765",
         "status": "Design verified by rule checks; no hardware built yet.",
         "sources": {f"gen/{n}.py": hashlib.sha256((src / f"gen/{n}.py").read_bytes()).hexdigest() for n in ("upper", "lower")},
         "repository": "https://github.com/PeterJBurke/stackf765",
@@ -112,7 +118,7 @@ data = {
     },
     "intro": "Seven UARTs (1, 2, 3, 4, 6, 7, 8). TX and RX are named from the flight controller’s side. Match the "
              "silkscreen labels; screen direction changes when the board is rotated.",
-    "scope": "Includes the Upper header, the Lower solder holes, power pads, service cable and interboard contacts. Service board is separate "
+    "scope": "Includes the upper front and upper rear Dupont headers, the lower board's power pads, the service cable and the board-to-board connector. Service board is separate "
              "from the main stack. Power ratings and assembly fit are design values: design verified by rule checks; no hardware built yet.",
     "groups": groups,
 }
