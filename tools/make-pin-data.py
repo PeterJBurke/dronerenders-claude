@@ -100,7 +100,7 @@ for c, (top, bottom) in enumerate(lo["B2B_COLS"]):
     rows.append({"pin": str(2 * c + 1), "net": top, "function": describe(top)})
     rows.append({"pin": str(2 * c + 2), "net": bottom, "function": describe(bottom)})
 groups.append({"board": "UpperLogic", "ref": "J3", "title": "Between boards · Upper J3 ↔ Lower J1",
-               "note": "20 contacts, 2×10 at 1.27 mm pitch: Samtec FTSH-110-04-L-DV header on the Upper board mates with SFMC-110-02-L-D socket on the Lower; same-number contacts mate. Not an external connector.", "rows": rows})
+               "note": "20 contacts, 2×10 at 1.27 mm pitch: Samtec FTSH-110-04-F-DV-TR header on the Upper board mates with SFMC-110-02-L-D-K-TR socket on the Lower; both are fitted by JLCPCB. Same-number contacts mate. Not an external connector.", "rows": rows})
 
 data = {
     "metadata": {
@@ -112,7 +112,7 @@ data = {
     },
     "intro": "Seven UARTs (1, 2, 3, 4, 6, 7, 8). TX and RX are named from the flight controller’s side. Match the "
              "silkscreen labels; screen direction changes when the board is rotated.",
-    "scope": "Includes the external headers, power pads, service cable and interboard contacts. Service board is separate "
+    "scope": "Includes the Upper header, the Lower solder holes, power pads, service cable and interboard contacts. Service board is separate "
              "from the main stack. Power ratings and assembly fit are design values: design verified by rule checks; no hardware built yet.",
     "groups": groups,
 }

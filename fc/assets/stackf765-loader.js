@@ -47,7 +47,7 @@ export const VIEW_METADATA = {
 window.FC_VIEW_METADATA = VIEW_METADATA;
 
 const BOARDS = {
-  lower: { key: 'LowerPower', name: 'Lower', headers: ['J2'], z: DIM.zLower },
+  lower: { key: 'LowerPower', name: 'Lower', headers: [], z: DIM.zLower },
   upper: { key: 'UpperLogic', name: 'Upper', headers: ['J1'], z: DIM.zUpper },
   service: { key: 'Service', name: 'Service', headers: [], z: 0 },
 };
