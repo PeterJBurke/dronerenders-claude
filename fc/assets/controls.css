@@ -10,3 +10,4 @@ nav.viewer-controls{position:fixed;top:14px;right:14px;left:auto;max-width:none;
 .options>div{position:absolute;right:0;top:40px;display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--line,#a8b5c0);border-radius:7px;background:var(--panel,#fff);min-width:135px}
 #legend{z-index:6;top:60px;bottom:auto;max-height:calc(100vh - 110px)}
 @media(max-width:850px){nav.viewer-controls{top:57px;left:14px;right:14px;justify-content:flex-start;gap:6px}.viewer-controls label{font-size:11px}.viewer-controls button,.viewer-controls summary,.viewer-controls select{font-size:11px;padding:6px}.viewer-controls select{max-width:100px}#legend{top:105px;max-height:calc(100vh - 160px)}}
+@media(max-width:480px){.page-links{left:8px;gap:4px}.page-links a,.page-links button{padding:7px;white-space:nowrap}}

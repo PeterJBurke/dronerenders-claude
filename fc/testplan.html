@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>StackF765 — Test plan</title>
+<style>
+:root{--bg:#f7f8f9;--fg:#15181c;--muted:#4e5661;--panel:#fff;--line:#c3c8cf}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
+body .page-links{position:static;display:flex;flex-wrap:wrap;gap:6px;padding:14px}
+main{max-width:820px;margin:0 auto;padding:4px 16px 40px}
+h1{font-size:24px;line-height:1.25;margin:10px 0 6px}
+h2{font-size:18px;margin:30px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:22px 0 6px}
+p{margin:8px 0}
+.lead{color:var(--muted)}
+ol,ul{margin:8px 0;padding-left:24px}
+li{margin:5px 0}
+main a{color:#126596;overflow-wrap:anywhere}
+code{font:13px ui-monospace,Menlo,Consolas,monospace;background:#e9edf1;padding:1px 4px;border-radius:3px;overflow-wrap:anywhere}
+.scroll{overflow-x:auto;margin:10px 0;-webkit-overflow-scrolling:touch}
+.scroll.wide{width:max(100%,min(1240px,calc(100vw - 48px)));margin-left:50%;transform:translateX(-50%)}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel)}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#e6edf5;color:#29425b;font-weight:600}
+table.c6{min-width:900px}
+table.c8{min-width:1500px;font-size:13px}
+table.c8 code{font-size:12px}
+.warn{background:#fff0d5;color:#5c3400;border:1px solid #e3c48b;border-radius:6px;padding:9px 12px;margin:12px 0}
+.small{font-size:13px;color:var(--muted)}
+.tag{font-size:12px;color:#29425b;background:#e6edf5;border-radius:3px;padding:0 4px;white-space:nowrap}
+.tag.inf{color:#5c3400;background:#fff0d5}
+.tag.long{white-space:normal}
+nav.toc{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:12px 0;font-size:14px}
+nav.toc ul{margin:4px 0;columns:2;column-gap:28px;list-style:none;padding-left:0}
+nav.toc ul ul{columns:1;padding-left:14px}
+nav.toc li{margin:3px 0;break-inside:avoid}
+.tools{display:flex;gap:6px;margin:8px 0}
+.tools button{font:12px system-ui;color:var(--fg);background:var(--panel);border:1px solid var(--line);padding:6px 10px;border-radius:6px;cursor:pointer}
+details.sec{border-top:1px solid var(--line);margin:0;padding:10px 0}
+details.sec.sub{border-top:1px dashed var(--line);padding:8px 0}
+details.sec>summary{cursor:pointer;font-weight:600;font-size:18px;padding:4px 0}
+details.sec.sub>summary{font-size:16px}
+details.sec>summary:hover{color:#126596}
+h2.group{margin-bottom:4px}
+@media(max-width:600px){h1{font-size:21px}table{font-size:13px}th,td{padding:5px}nav.toc ul{columns:1}details.sec>summary{font-size:16px}details.sec.sub>summary{font-size:15px}}
+@media print{details.sec>*{display:block}.tools{display:none}}
+</style><link href="assets/controls.css" rel="stylesheet"/></head><body>
+<div class="page-links"><a href="./">Drone</a><a href="board.html">Board</a><a href="handsolder.html">Hand soldering</a><a aria-current="page" href="testplan.html">Test plan</a></div>
+<main>
+<h1>StackF765: pre-fabrication verification plan</h1>
+<div class="warn"><b>Status on 2026-11-25: this is a plan, not a set of results.</b> None of the analysis described here has been run, and no design file was changed. The “top risks” are one reviewer’s reading of the design files. They have not been confirmed by simulation, by measurement or by a second reviewer, and some may turn out to be wrong.</div>
+<p>Date: 2026-11-25. Scope: upper, lower and service boards, rev B, as committed in the StackF765 design repository (HEAD <code>0a44bf2</code>).
+This is a plan. No analysis in it has been run, no design file was changed, nothing was committed.
+The only things executed were read-only queries of the board files (to gather evidence for the risks) and a one-line check that the SPICE library on this server works.</p>
+<p>Labels used throughout:</p>
+<ul>
+<li><strong><span class="tag">[measured]</span></strong> read from the design files by script on 2026-11-25 (board-centre origin, KiCad y pointing to the rear).</li>
+<li><strong><span class="tag">[doc]</span></strong> stated in the repository's own documents.</li>
+<li><strong><span class="tag inf">[inference]</span></strong> my estimate or engineering judgement; not proven.</li>
+<li><strong><span class="tag">[web]</span></strong> checked on the web on 2026-11-25. <strong><span class="tag">[recall]</span></strong> from memory, not re-checked.</li>
+</ul>
+<p class="small">First on this page: the summary and the prioritised work list. The evidence and the detailed plan follow under <a href="#detail">Detailed sections</a>.</p>
+<h2 id="s1">1. Executive summary</h2>
+<p>The existing checks prove the files are self-consistent: schematic = model = board = Gerbers, the pin map matches the firmware, the boards fit, firmware builds. Two paper reviews and a pin-by-pin datasheet audit found no wiring error. What nobody has done is <strong>simulate anything, solve any field, or model any heat or vibration</strong>. Every analogue and power number in the repository is a closed-form hand calculation. <code>research/audit-2026-11-19.md</code> section 3 says so itself: "ngspice is not installed; these are closed-form results".</p>
+<p>That statement is out of date in one useful way: the ngspice 42 shared library ships with KiCad on this server and runs headless from Python (checked). So most of the circuit simulation below needs no installation.</p>
+<p><strong>Top five risks</strong> (evidence in section 2):</p>
+<ol>
+<li><strong>USB hot-plug overshoot on VBUS exceeds the 6 V absolute maximum of the supply selector U5.</strong> Known, documented, left unfixed. Likely peak about 7 V <span class="tag inf">[inference]</span>.</li>
+<li><strong>Both 5 V regulators have floating enable pins</strong> (megohm nodes, 0.5 mm from the battery pin). Leakage from flux or condensation can switch the flight controller's supply off in flight. Raised in the first review, never actioned.</li>
+<li><strong>Regulator loop and transient margins are unverified</strong> with a smaller inductor (4.7 µH) and less output capacitance (17–21 µF effective) than TI's 5 V design, and the set-point tolerance already reaches the OSD chip's 5.25 V limit.</li>
+<li><strong>The 50 A path uses only the top layer between each wire pad and the shunt.</strong> The inner and bottom copper is a dead end there because there are no vias at the shunt pads. The documents say four layers. About 4–5 W ends up in the lower board under the upper board, with no thermal model.</li>
+<li><strong>The IMU sits 2.35 mm from the board edge on the unsupported front part of the upper board</strong>, between the standoffs and a 36-pin header that carries the cable loads. No modal or strain estimate exists.</li>
+</ol>
+<p><strong>First five things to do</strong>, ranked by risk avoided per hour (all before paying; about 7 hours):</p>
+<ol>
+<li>SPICE the USB hot-plug into U5 with ngspice and pick a damping fix. 1.5 h.</li>
+<li>SPICE the battery hot-plug and inrush on the lower board. 1.5 h.</li>
+<li>Decide the enable-pin fix for the two regulators (a two-resistor divider each). 1 h plus the change.</li>
+<li>Refill zones on a copy, re-run DRC, re-export and diff all fab files including the IPC-D-356 netlist. 1 h.</li>
+<li>Run the fab's DFM/DFA check on the exact files to be ordered (the owner uploads). 1.5 h.</li>
+</ol>
+<p>Then the three longer analyses that put numbers on risks 3, 4 and 5 (13–18 hours): TI's model of the TPS62933 for stability and load steps; a DC current-density and voltage-drop solve of the 50 A path; a vibration-mode and strain estimate at the IMU.</p>
+<p><strong>Honest limits.</strong> PDN impedance to hundreds of MHz, radiated emissions, and 3D thermal with airflow need commercial solvers (Ansys SIwave/Icepak, Cadence Sigrity/Celsius, Siemens HyperLynx/Flotherm, Keysight PIPro) or a week of open-source FEM work that would have to be installed first. For a 12 Mbit/s USB, 16 MHz SPI, 25–50 MHz SD board this is not where the respin risk is. Measure those on hardware instead. Nothing in this plan replaces the bench.</p>
+<h2 id="s3">3. Prioritised work list</h2>
+<p>Score = risk avoided (5 = likely respin or damage, 1 = cosmetic) divided by hours, rounded. IDs point to section 5.</p>
+<h3 id="s3-1">3.1 Do before paying for the JLCPCB order</h3>
+
+<div class="scroll wide"><table class="c6">
+<thead>
+<tr>
+<th>Rank</th>
+<th>ID</th>
+<th>Action</th>
+<th>Risk</th>
+<th>Hours</th>
+<th>Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>B1</td>
+<td>ngspice: USB hot-plug into <code>VBUS</code>/U5 over cable L and R corners; evaluate series R / damping / clamp options</td>
+<td>5</td>
+<td>1.5</td>
+<td>3.3</td>
+</tr>
+<tr>
+<td>2</td>
+<td>B2</td>
+<td>ngspice: battery hot-plug and start-up inrush on <code>VESC</code> (lead inductance 0.2–2 µH, with and without ESC bulk capacitor)</td>
+<td>4</td>
+<td>1.5</td>
+<td>2.7</td>
+</tr>
+<tr>
+<td>3</td>
+<td>B3d</td>
+<td>Decide the EN divider (and RT strap) for U1/U2 lower; no simulation needed, datasheet reading and one netlist change</td>
+<td>5</td>
+<td>1 + ECO</td>
+<td>2.5+</td>
+</tr>
+<tr>
+<td>4</td>
+<td>A1</td>
+<td>Refill zones on a copy, re-run DRC, re-export Gerbers/drill/D-356 and diff against <code>fab/</code></td>
+<td>3</td>
+<td>1</td>
+<td>3.0</td>
+</tr>
+<tr>
+<td>5</td>
+<td>A2</td>
+<td>Fab DFM + DFA on the exact order files (JLCDFM and the assembly preview; owner uploads)</td>
+<td>4</td>
+<td>1.5</td>
+<td>2.7</td>
+</tr>
+<tr>
+<td>6</td>
+<td>C1</td>
+<td>DC voltage drop and current density: 50 A path, <code>+5V</code>, <code>+5V_PI</code>, <code>+5V_SYS</code>, <code>+3V3</code>; via currents</td>
+<td>4</td>
+<td>6–8</td>
+<td>0.6</td>
+</tr>
+<tr>
+<td>7</td>
+<td>B3</td>
+<td>TPS62933 with TI's model: loop gain, load step, start-up into capacitive load, full-load release</td>
+<td>4</td>
+<td>4–6</td>
+<td>0.8</td>
+</tr>
+<tr>
+<td>8</td>
+<td>G1</td>
+<td>Modal and static-strain estimate of the upper board at the IMU; decide on fourth support / IMU position</td>
+<td>4</td>
+<td>3–4</td>
+<td>1.1</td>
+</tr>
+<tr>
+<td>9</td>
+<td>B5</td>
+<td>Worst-case and Monte Carlo tolerance run for every rail and both sense channels</td>
+<td>3</td>
+<td>3</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>10</td>
+<td>E1</td>
+<td>First-order thermal map of the lower board at 50 A + both rails loaded (2D spreading model)</td>
+<td>3</td>
+<td>4–6</td>
+<td>0.6</td>
+</tr>
+<tr>
+<td>11</td>
+<td>A3</td>
+<td>IPC-2221/2152 width and via current table for every net class, automated</td>
+<td>3</td>
+<td>2</td>
+<td>1.5</td>
+</tr>
+<tr>
+<td>12</td>
+<td>A4</td>
+<td>Solder-mask dam, paste aperture, tombstone and pad-thermal balance scan</td>
+<td>3</td>
+<td>3</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>13</td>
+<td>D1</td>
+<td>Return-path and plane-void scan (signal vias with no ground via within 2 mm; slots under tracks)</td>
+<td>3</td>
+<td>3</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>14</td>
+<td>I1</td>
+<td>Lifecycle and stock re-check on the order day; BMP388 status; second sources</td>
+<td>3</td>
+<td>1.5</td>
+<td>2.0</td>
+</tr>
+<tr>
+<td>15</td>
+<td>H1</td>
+<td>Firmware: timer/DMA table review against MatekF765-Wing; SITL and Renode boot of the built image</td>
+<td>2</td>
+<td>3–4</td>
+<td>0.6</td>
+</tr>
+<tr>
+<td>16</td>
+<td>G2</td>
+<td>Tolerance stack of the board-to-board connector, standoffs and header tails (Monte Carlo)</td>
+<td>3</td>
+<td>2</td>
+<td>1.5</td>
+</tr>
+<tr>
+<td>17</td>
+<td>D2</td>
+<td>Crosstalk estimate on video, ADC and crystal nets from coupled lengths</td>
+<td>2</td>
+<td>3</td>
+<td>0.7</td>
+</tr>
+<tr>
+<td>18</td>
+<td>B6</td>
+<td>Crystal start-up margin and drive level, 8 MHz and 27 MHz</td>
+<td>2</td>
+<td>1.5</td>
+<td>1.3</td>
+</tr>
+<tr>
+<td>19</td>
+<td>F1</td>
+<td>Hot-loop area and switch-node review of U1/U2 lower against TI's EVM layout</td>
+<td>2</td>
+<td>2</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>20</td>
+<td>A5</td>
+<td>Independent Gerber-to-netlist extraction against IPC-D-356</td>
+<td>1</td>
+<td>6</td>
+<td>0.2</td>
+</tr>
+</tbody>
+</table></div>
+<p>Items 1–5 cost about 7 hours and address the two risks that can destroy a part or the aircraft. Do those even if nothing else is done.</p>
+<h3 id="s3-2">3.2 Do before first power-up (boards on the bench, unpowered)</h3>
+
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>ID</th>
+<th>Action</th>
+<th>Hours</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>J1</td>
+<td>Incoming inspection: X-ray images from the assembler, microscope check of pin 1 on U1, U2, U3, U4, U5 and of BZ1, the LEDs, Q1 and Q2 (the two TVS diodes are bidirectional, so their orientation does not matter)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>J2</td>
+<td>Extended unpowered resistance table (every rail to ground and rail to rail, both polarities), compare three boards</td>
+<td>1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>J3</td>
+<td>Build the pogo-pin SWD/test-pad fixture for TP1–TP6 and a J1 breakout with loopback plugs</td>
+<td>4</td>
+</tr>
+<tr>
+<td>4</td>
+<td>J4</td>
+<td>Prepare the current-limited supply profiles and a scope plan (which node, which trigger) for each first-power step</td>
+<td>1</td>
+</tr>
+<tr>
+<td>5</td>
+<td>H2</td>
+<td>Factory test firmware or script: MAVLink pass/fail of every sensor, UART loopback, SD write, OSD detect</td>
+<td>4</td>
+</tr>
+<tr>
+<td>6</td>
+<td>J5</td>
+<td>Check the service cable pin 1 to pin 1; check the Samtec film is removed; measure seated gap</td>
+<td>0.5</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="s3-3">3.3 Do with hardware</h3>
+
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>ID</th>
+<th>Action</th>
+<th>Hours</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>J6</td>
+<td>Power-up of each board alone with scope on <code>+5V</code>, <code>+5V_PI</code>, <code>+3V3</code>, <code>VBUS</code> (start-up, ripple, hot-plug peaks)</td>
+<td>3</td>
+</tr>
+<tr>
+<td>2</td>
+<td>J7</td>
+<td>Regulator load-step and loop check (electronic load; Bode by injection if an analyser is available)</td>
+<td>3</td>
+</tr>
+<tr>
+<td>3</td>
+<td>J8</td>
+<td>50 A soak with thermal camera in still air and at 3–5 m/s; four-wire resistance of the path</td>
+<td>3</td>
+</tr>
+<tr>
+<td>4</td>
+<td>J9</td>
+<td>Current and voltage sense calibration at 5 points; zero offset; ripple pickup with a real ESC</td>
+<td>2</td>
+</tr>
+<tr>
+<td>5</td>
+<td>J10</td>
+<td>Clock accuracy (MCO or USB SOF), SD at full rate with error counters, SPI/I2C waveform sanity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>6</td>
+<td>J11</td>
+<td>Vibration: tap test and motor run-up with ArduPilot batch FFT logging; check clipping and noise floor</td>
+<td>3</td>
+</tr>
+<tr>
+<td>7</td>
+<td>J12</td>
+<td>EMI pre-scan: near-field probe map, GPS carrier-to-noise with the board on and off, video noise with the buzzer and SD active</td>
+<td>4</td>
+</tr>
+<tr>
+<td>8</td>
+<td>J13</td>
+<td>ESD and abuse: ±4 kV contact to the USB shell, service cable reversed, USB plugged 50 times with the scope on <code>VBUS</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td>9</td>
+<td>J14</td>
+<td>Temperature: −10 °C and +60 °C soak, boot and log; IMU bias against temperature</td>
+<td>4</td>
+</tr>
+<tr>
+<td>10</td>
+<td>J15</td>
+<td>Flight progression (section 5.J)</td>
+<td>days</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="detail">Detailed sections</h2>
+<nav class="toc" aria-label="Detailed sections"><ul><li><a href="#s2">2. Top five risks, with evidence</a></li><li><a href="#s4">4. What is installed on this server</a></li><li><a href="#s5">5. Detailed plan</a><ul><li><a href="#s5a">5.A Rule checking beyond KiCad DRC</a></li><li><a href="#s5b">5.B Circuit simulation</a></li><li><a href="#s5c">5.C Power integrity</a></li><li><a href="#s5d">5.D Signal integrity</a></li><li><a href="#s5e">5.E Thermal</a></li><li><a href="#s5f">5.F EMC, EMI and ESD</a></li><li><a href="#s5g">5.G Mechanical and 3D</a></li><li><a href="#s5h">5.H Firmware and hardware co-verification</a></li><li><a href="#s5i">5.I Sourcing, lifecycle and assembly</a></li><li><a href="#s5j">5.J Physical validation once boards exist</a></li></ul></li><li><a href="#s6">6. Tool survey</a></li><li><a href="#s7">7. What cannot be done here, or at all before hardware</a></li><li><a href="#s8">8. Proposed additions to <code>tools/verify.py</code></a></li><li><a href="#s9">9. Effort summary</a></li><li><a href="#s10">10. Sources consulted on 2026-11-25</a></li></ul></nav>
+<div class="tools"><button id="openAll" type="button">Open all</button><button id="closeAll" type="button">Close all</button></div>
+<details class="sec" id="s2" open><summary>2. Top five risks, with evidence</summary><h3>Risk 1. VBUS hot-plug overshoot into U5 (LM66200), upper board</h3>
+<ul>
+<li><code>gen/upper.py:53-57</code>: <code>U5</code> <code>VIN2</code> = <code>VBUS</code>; <code>C2</code> 1 µF 0402 and <code>D3</code> (<code>tvs5</code> = SMF5.0CA) on <code>VBUS</code>. <code>gen/service.py:30</code>: <code>C1</code> 1 µF. Total about 2 µF nominal, about 1 µF at 5 V bias <span class="tag inf long">[inference from the Samsung 0402 bias curve quoted in the audit]</span>.</li>
+<li><code>research/audit-2026-11-19.md</code> finding 9: D3 breaks down at 6.4 V minimum and clamps at 9.2 V; LM66200 absolute maximum is 6 V. <code>research/design-review.md</code> S5 says the same. <code>docs/verification.md</code> records it as "Not changed; do not use chargers that overshoot".</li>
+<li><span class="tag inf">[inference]</span> The overshoot does not need a bad charger. A 1 m USB cable plus the 100 mm JST-SH lead is roughly 0.5–1 µH and 0.2–0.5 Ω in series with 1–2 µF: characteristic impedance about 0.7 Ω, damping ratio 0.15–0.35, overshoot 35–60 %, i.e. 6.8–8 V before D3 starts to conduct. D3 then holds it somewhere between 6.4 and about 7.5 V. That is above the absolute maximum on every plug-in.</li>
+<li>Consequence: latent or immediate damage to U5, the single part every supply current passes through.</li>
+<li>Cheap fixes to evaluate in simulation: 0.5–1 Ω (or a ferrite) in series with VBUS at J5; a 4.7–10 µF capacitor with ESR; a unidirectional 5 V clamp with lower dynamic resistance.</li>
+</ul>
+<h3>Risk 2. Floating EN (and RT) pins on both TPS62933 regulators, lower board</h3>
+<ul>
+<li><code>gen/lower.py:38-39</code>: <code>nc=("EN", "RT")</code>. <span class="tag">[measured]</span> <code>U1</code> pad 2 <code>unconnected-(U1-EN-Pad2)</code> at (−3.34, 8.15), pad 3 <code>VESC</code> at (−3.34, 8.65): 0.5 mm pitch, 0.2 mm gap, battery voltage next door. Same on <code>U2</code>.</li>
+<li><code>research/design-review.md</code> N1: internal pull-up is about 0.7 µA; EN absolute maximum is 6 V; "flux residue or condensation leaking &gt; ~1 µA to ground would shut the 5 V rail off in flight". It was filed as a note, and the generator still leaves the pin open.</li>
+<li><span class="tag inf">[inference]</span> Leakage can go either way: to ground (rail off) or to the adjacent VIN pad (EN pulled towards 8–12 V, above its 6 V rating). A multirotor sees condensation.</li>
+<li><code>U1</code> feeds the flight controller. Loss of <code>+5V</code> in flight is loss of the aircraft.</li>
+<li>Related: <code>gen/lower.py:23</code> puts the servo-rail pins of J2 columns 1–7 on the flight controller's own <code>+5V</code>. A stalled servo or a shorted lead takes the MCU supply with it.</li>
+</ul>
+<h3>Risk 3. Regulator stability, transient and set-point margins, lower board</h3>
+<ul>
+<li><code>gen/lower.py:46-51</code>: 4.7 µH, 51 k + 2.2 k / 10 k, two 22 µF 0805 output capacitors, no feed-forward capacitor.</li>
+<li><code>research/audit-2026-11-19.md</code> findings 6, 17 and section 3.1: output capacitance 21 µF effective (17 µF with tolerance), "at or below" TI's 20 µF typical; TI's 5 V/500 kHz design uses 6.8 µH; a 1.5 A step "moves the output a little more than 5 %"; set-point range with tolerances 4.87–5.25 V; "The AT7456E maximum is 5.25 V ... inside, with no margin at the very top".</li>
+<li>No loop-gain or time-domain simulation exists. Loads are unknown: long servo leads, a companion computer with hundreds of µF, an ESC BEC back-feeding.</li>
+<li><span class="tag inf">[inference]</span> On a full-load release the energy in the inductor lifts the output by roughly √(V² + L·I²/C) − V ≈ 0.3–0.4 V with 17 µF, on top of a set-point that may already be 5.25 V. That reaches about 5.6 V on <code>+5V</code>, which feeds U5 (5.5 V recommended maximum) and through it the OSD chip.</li>
+</ul>
+<h3>Risk 4. 50 A path and lower-board heat</h3>
+<ul>
+<li><span class="tag">[measured]</span> Net <code>VBAT</code> has <strong>no vias</strong> apart from the twelve 0.4 mm holes inside wire pad <code>J10</code> (y = 20.5 … 23.0). Shunt <code>R1</code> pad 1 is a top-layer pad 1.8 × 3.4 mm at (−10.1, 16.6). The <code>VBAT high current</code> zone exists on all four layers (<code>gen/lower.py:210</code>) but the inner and bottom copper has no connection at the shunt end. The same is true on the <code>VESC</code> side: the six <code>VESC</code> vias are at the regulators and the TVS, none at <code>R1</code> pad 2 (−4.9, 16.6).</li>
+<li>So all 50 A crosses about 1.5 mm of top-layer 2 oz copper and enters a 1.8 mm-wide pad. <code>docs/design.md</code> ("5–6 mm wide on four layers") and <code>research/layout-review.md</code> ("solid zone on all four layers ... under 0.1 mΩ") do not describe that.</li>
+<li><span class="tag inf">[inference]</span> Sheet resistance of 70 µm copper is about 0.25 mΩ per square at 20 °C, 0.31 at 85 °C. Expect 0.1–0.2 mΩ and 0.25–0.5 W per side at 50 A, concentrated at the pad edges, next to a shunt that is itself dissipating 1.25 W. Adding the two regulators at load (0.8 W + 0.45 W each, audit 3.1) gives 4–5 W in a 31.5 × 48 mm board that has another board 8 mm above it.</li>
+<li><span class="tag">[measured]</span> <code>D1</code> (the input clamp) reaches the <code>VESC</code> plane through 0.2 mm track and a single 0.3 mm via at (3.3, 15.15). Adequate for short pulses <span class="tag inf">[inference]</span>; a second via costs nothing.</li>
+<li><span class="tag">[measured]</span> The whole lower board has 11 ground vias outside the wire pads.</li>
+</ul>
+<h3>Risk 5. IMU placement and stack mechanics</h3>
+<ul>
+<li><span class="tag">[measured]</span> <code>U2</code> (ICM-45686) is at (13.4, −11.3) on the upper board: 2.35 mm from the right edge, 12.7 mm from the front edge. Standoffs are at (−12.3, −3.0), (12.3, −3.0), (12.3, 15.9) (<code>gen/lower.py:32</code>): three, not four, and none forward of y = −3. The 3 × 12 header <code>J1</code> has its hole rows at y = −17.7 … −22.8 with the body hanging off the front edge.</li>
+<li>So the IMU sits on a 21 mm overhang, between the support line and the connector that takes every cable force. The fourth corner (rear left, beside the microSD socket) is unsupported.</li>
+<li><span class="tag">[measured]</span> <code>IMU_SCK</code> runs on <code>In2.Cu</code> within 1.6 mm of the package centre. TDK's layout notes (AN-000393, AN-000262 <span class="tag long">[web: titles only, not opened]</span>) ask for no vias or tracks under the package.</li>
+<li><span class="tag inf">[inference]</span> First bending mode of the overhang with the header mass is somewhere between 0.6 and 2 kHz; motor and blade-pass harmonics of a small multirotor reach that band. Cable pull on the header strains the board at the IMU and shifts gyro and accelerometer bias.</li>
+<li><span class="tag inf">[inference]</span> The grommet isolation of the stack is partly bypassed by four 12 AWG power wires and up to 27 soldered signal wires on the lower board.</li>
+<li>This cannot be fixed after fabrication, which is why it is in the top five even though it may turn out acceptable.</li>
+</ul>
+<h3>Next five (not ranked into the top five)</h3>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Analogue video crosses the board at minimum width</td>
+<td><span class="tag">[measured]</span> <code>CAM_IN</code> 46.8 mm over three layers, <code>VTX_OUT</code> 42.8 mm on <code>B.Cu</code>, both 0.15 mm; closest same-layer neighbours at 0.49–0.51 mm include <code>OSC_IN</code>, <code>IMU_SCK</code>, <code>M3</code>, <code>BUZ_OUT</code>. The OSD chip's analogue supply is the unfiltered <code>+5V_SYS</code> (<code>gen/upper.py:158</code>).</td>
+</tr>
+<tr>
+<td>Few ground vias, fragmented pours on the upper board</td>
+<td><span class="tag">[measured]</span> 38 <code>GND</code> and 16 <code>+3V3</code> vias out of 184; the top-layer ground pour is 30 separate pieces. Inner signal layers <code>In2</code>/<code>In3</code> sit 0.55 mm from their nearest plane (JLC06161H-3313).</td>
+</tr>
+<tr>
+<td>3.3 V dropout on weak USB</td>
+<td><span class="tag">[doc]</span> audit 3.5: at 4.40 V and 0.5 A, <code>LDO_IN</code> = 3.23 V.</td>
+</tr>
+<tr>
+<td>BMP388 lifecycle</td>
+<td><span class="tag">[web]</span> search results report Bosch marks BMP388 "not for new designs" with BMP390 as successor; I could not open Bosch's page (404).</td>
+</tr>
+<tr>
+<td>Parts with almost no stock</td>
+<td><span class="tag">[doc]</span> <code>docs/manufacturing.md</code>: FTSH header 5 pieces, STM32F765 48, TPS62933 36 at JLCPCB.</td>
+</tr>
+</tbody>
+</table></div></details>
+<details class="sec" id="s4"><summary>4. What is installed on this server</summary><p>Checked on 2026-11-25. Nothing was installed.</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>Present</th>
+<th>Version</th>
+<th>Use in this plan</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KiCad and <code>kicad-cli</code></td>
+<td>9.0.9</td>
+<td>ERC, DRC, Gerber, drill, IPC-D-356, <strong>ODB++</strong>, <strong>IPC-2581</strong>, STEP, GLB, SPICE netlist export (<code>kicad-cli sch export netlist --format spice</code>)</td>
+</tr>
+<tr>
+<td><code>pcbnew</code> Python module</td>
+<td>9.0.9</td>
+<td>Geometry extraction, zone refill, every scripted layout check</td>
+</tr>
+<tr>
+<td><strong>ngspice shared library</strong> <code>libngspice.so.0</code></td>
+<td>42 (build date 2024-03-31)</td>
+<td>All SPICE work, driven from Python with <code>ctypes</code>. Verified: a test RC circuit ran and returned the right time constant. There is <strong>no</strong> <code>ngspice</code> command-line program.</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>3.12.3, numpy 2.5.2, scipy 1.11.4, matplotlib 3.11.1</td>
+<td>Sparse solvers for the DC and thermal grid models, Monte Carlo. Note: scipy prints a version warning against this numpy; a sparse solve should be smoke-tested first.</td>
+</tr>
+<tr>
+<td>Docker</td>
+<td>images <code>kicad/kicad:9.0</code>, <code>droneserver-sitl-arducopter:4.5.7</code>, <code>ubuntu:22.04/24.04</code></td>
+<td>Clean-room re-run of the KiCad checks; ArduCopter SITL</td>
+</tr>
+<tr>
+<td>ArduPilot tree</td>
+<td>local checkout, commit <code>a995235</code> (2026-11-16), with <code>Tools/renode/</code> and <code>Tools/scripts/sitl-on-hardware/</code></td>
+<td>SITL, Renode emulation, simulation-on-hardware build</td>
+</tr>
+<tr>
+<td>Python venv for ArduPilot</td>
+<td>pymavlink 2.4.50, dronecan 1.0.27, pexpect</td>
+<td>Scripted MAVLink tests</td>
+</tr>
+<tr>
+<td>ARM GCC and GDB</td>
+<td>10-2020-q4, in a separate read-only tools tree</td>
+<td>Firmware build, later SWD debugging</td>
+</tr>
+<tr>
+<td>Blender</td>
+<td>4.0.2</td>
+<td>Renders only</td>
+</tr>
+<tr>
+<td>gcc</td>
+<td>13.3.0</td>
+<td>Building small solvers if needed</td>
+</tr>
+</tbody>
+</table></div>
+<p>Not present: <code>ngspice</code> CLI, LTspice, Qucs, Xyce, openEMS, Elmer, gmsh, FreeCAD, CalculiX, gerbv, scikit-rf, shapely, gerbonara/pygerber, KiBot, KiKit, padne, KiPI, Renode, QEMU, OpenOCD, dfu-util, any commercial EDA tool. Memory is 8 GB with 4 cores: enough for 2D/2.5D grid solves at 50 µm, not for 3D full-wave of a whole board.</p>
+<p>Constraint from earlier sessions <span class="tag">[doc, project notes]</span>: this sandbox refuses to run downloaded binaries. Anything "pip install" or "download a release" below needs the owner's approval first, and binaries may not run at all. Each table therefore names an option that needs nothing new.</p></details>
+<h2 class="group" id="s5">5. Detailed plan</h2>
+<p>Column key. <strong>Best tool</strong> is what a well-funded team would use. <strong>Free, headless here</strong> is what can run on this server; "(install)" means it is not present and needs approval. <strong>Auto</strong> says whether the check can become a line in <code>tools/verify.py</code>.</p>
+<details class="sec sub" id="s5a"><summary>5.A Rule checking beyond KiCad DRC</summary><p>Existing DRC uses the fab minimums in each <code>.kicad_pro</code> and silences five silkscreen and library checks (<code>gen/upper.py:221-224</code>). It does not look at solder mask, paste, annular ring after drill tolerance, acid traps, copper balance, current capacity or assembly.</p>
+<div class="scroll wide"><table class="c8">
+<thead>
+<tr>
+<th>ID</th>
+<th>Question for this design</th>
+<th>Nets / parts / files</th>
+<th>Best tool</th>
+<th>Free, headless here</th>
+<th>Inputs</th>
+<th>Pass / fail</th>
+<th>Hours</th>
+<th>Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A1</td>
+<td>Are the zone fills in the committed boards current, and do <code>fab/*.d356</code> and drill maps still match after the 24–25 Nov in-place patches? <code>verify.py</code> compares Gerbers and drill only; <code>fab/upper/upper.d356</code> is dated 19 Nov, the BOM 25 Nov <span class="tag">[measured]</span>. KiCad 9.0.9 <code>kicad-cli pcb drc</code> has no refill option <span class="tag long">[measured from <code>--help</code>]</span>.</td>
+<td>all three <code>.kicad_pcb</code>, <code>fab/*/</code></td>
+<td>–</td>
+<td><code>pcbnew.ZONE_FILLER</code> on a temp copy, then DRC and re-export, then diff</td>
+<td>none</td>
+<td>Zero DRC items after refill; Gerber, drill and D-356 identical apart from dates</td>
+<td>1</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>A2</td>
+<td>Does the fab's own rule deck accept the files (trace, mask, drill, silk) and does every part land on its pads with the right rotation?</td>
+<td><code>fab/*/*-gerbers.zip</code>, <code>*-bom-jlc.csv</code>, <code>*-cpl-jlc.csv</code></td>
+<td>Siemens Valor NPI / PCBflow, Cadence DFM (licensed)</td>
+<td>JLCDFM web tool and JLCPCB's assembly preview; NextPCB HQDFM as a second opinion. All are uploads to a third party: the owner does this, not an agent. No local equivalent exists.</td>
+<td>order files</td>
+<td>No red items; every polarised part compared with <code>docs/boards/*/*-assembly-*.svg</code>; USB-C offset explained (<code>docs/ordering-jlcpcb.md</code> line 240)</td>
+<td>1.5</td>
+<td>no</td>
+</tr>
+<tr>
+<td>A3</td>
+<td>Does every track and via carry its worst-case current within a stated temperature rise? Existing review used IPC-2221 by hand on three nets.</td>
+<td>Lower: <code>+5V</code> 0.6 mm (61 mm) with 0.2 mm spur, <code>+5V_PI</code> 0.8 mm, <code>VESC</code> feeds through 0.3 mm vias (2–3 per regulator), <code>D1</code> via. Upper: <code>+5V</code> 0.24 mm × 5.0 mm neck on <code>B.Cu</code>, <code>+5V_SYS</code> 0.4 mm (113 mm, 10 vias), <code>LDO_IN</code>, <code>VBUS</code>. Board-to-board pins 15–18. <span class="tag">[measured]</span></td>
+<td>Saturn PCB Toolkit (Windows), Polar, HyperLynx</td>
+<td>Python: IPC-2152 fit (or IPC-2221 as the conservative bound) over every segment from <code>pcbnew</code>, with a per-net current table</td>
+<td>Current per net (table to be written in <code>gen/</code>), copper weights, JLC stack-ups</td>
+<td>Rise ≤ 20 °C at rated current, ≤ 40 °C at fault current; via ≤ 1.5 A per 0.3 mm hole; connector ≤ 75 % of Samtec's per-pin rating</td>
+<td>2</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>A4</td>
+<td>Will the parts solder cleanly? Mask dam between 0.5 mm-pitch pads (LQFP-100, SOT-583, LGA-14, LGA-10), paste area ratio for 0402 and LGA apertures, unequal copper on the two pads of 0402 parts (tombstoning), vias in or touching pads, standoff paste (audit finding 13).</td>
+<td><code>U1</code>, <code>U2</code>, <code>U3</code>, lower <code>U1</code>/<code>U2</code>, upper <code>U5</code>; all 0402s; <code>H1–H3</code>; <code>pad_to_mask_clearance 0</code> in every board <span class="tag">[measured]</span></td>
+<td>Valor NPI, Vayo DFX, JLC's DFA</td>
+<td>Python over <code>pcbnew</code>: per pad compute mask web to neighbours, paste area ratio for a 0.10–0.12 mm stencil, connected copper width per pad, zone connection type</td>
+<td>JLC mask minimums (web ≥ 0.1 mm green mask <span class="tag long">[doc: ordering guide line 81; recheck]</span>), stencil thickness</td>
+<td>Mask web ≥ 0.10 mm or pads gang-opened on purpose; area ratio ≥ 0.66; 0402 pad copper imbalance ≤ 3:1 unless thermal relief; no untented via within 0.2 mm of a pad</td>
+<td>3</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>A5</td>
+<td>Do the Gerbers, read on their own, give the same netlist as the schematic? JLCPCB's flying-probe test compares the board with a netlist derived from the same Gerbers <span class="tag">[recall]</span>, so it cannot catch a plot error.</td>
+<td><code>fab/*/gerbers/*</code>, <code>fab/*/*.d356</code></td>
+<td>Ucamco Integr8tor, CAM350, Valor (licensed); HQDFM netlist compare</td>
+<td>Python Gerber parser (gerbonara, install) plus flood-fill connectivity, compared with D-356. Without install: a small RS-274X reader for KiCad's own dialect, about a day.</td>
+<td>Gerbers, drill, D-356</td>
+<td>Identical net partition; zero shorts or opens</td>
+<td>6</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>A6</td>
+<td>Creepage and clearance at battery voltage, and the soldering hazard at the wire pads.</td>
+<td><code>J10–J13</code>: <code>ESC+</code> to <code>ESC−</code> gap 2.5 mm; pad copper 0.25 mm from the board edge (audit finding 15)</td>
+<td>–</td>
+<td>Python distance report on <code>VBAT</code>/<code>VESC</code> to anything else, all layers</td>
+<td>IPC-2221B table 6-1</td>
+<td>≥ 0.13 mm required at 15 V; this is not an electrical issue. The real criterion is workmanship: ≥ 2 mm of mask between pads that take 12 AWG wire, and no exposed copper at the edge after routing</td>
+<td>0.5</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>A7</td>
+<td>Copper balance and bow. The lower board has heavy copper at the rear only; the upper is double-sided assembly.</td>
+<td>lower outer layers; upper <code>F.Cu</code>/<code>B.Cu</code> pours (596 vs 819 mm² <span class="tag">[measured]</span>)</td>
+<td>Valor, fab CAM</td>
+<td>Python: copper area per layer per quadrant</td>
+<td>–</td>
+<td>Top/bottom copper within 30 % per quadrant; otherwise ask the fab</td>
+<td>1</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>A8</td>
+<td>Fiducials and panel. None on any board (<code>docs/ordering-jlcpcb.md</code> line 26).</td>
+<td>all</td>
+<td>–</td>
+<td>Review only</td>
+<td>JLC rules</td>
+<td>Fab adds rails and fiducials; confirm the nub positions do not land on the wire pads or the header edge</td>
+<td>0.5</td>
+<td>no</td>
+</tr>
+<tr>
+<td>A9</td>
+<td>Silkscreen legibility. Labels are 0.62 mm high, 0.11 mm stroke; JLC recommends 1.0 mm <span class="tag">[doc]</span>.</td>
+<td>header labels on upper and lower</td>
+<td>–</td>
+<td>Already known; DRC <code>min_text_height</code> is set to 0.6 so it passes by construction</td>
+<td>–</td>
+<td>Accept, or enlarge the eight labels that identify polarity (<code>BAT+</code>, <code>BAT−</code>, <code>5V</code>, <code>G</code>) to ≥ 1.0 mm</td>
+<td>0.5</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table></div></details>
+<details class="sec sub" id="s5b"><summary>5.B Circuit simulation</summary><p>All of this runs on the bundled ngspice 42 from Python. Netlists should be written by hand per block (10–30 elements each) rather than exported from the full schematic, because most parts have no SPICE model attached. Keep them in a new <code>sim/</code> folder so they can be re-run.</p>
+<p>Models needed and where they come from:</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Model</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TPS62933</td>
+<td>TI lists "TPS62933 PSpice Transient Model" SLUM790 and an <strong>unencrypted</strong> one for the P variant, SLUM818; WEBENCH supports the family; no SIMPLIS model listed <span class="tag long">[web: ti.com product page]</span>. Whether SLUM790 is encrypted was not stated. TI forum reports that converting these to LTspice fails <span class="tag">[web]</span>.</td>
+<td>Use WEBENCH (browser, owner's TI login) or PSpice for TI (free, Windows) for the real model. On this server: an averaged peak-current-mode model built from the datasheet (gm, slope compensation, internal compensation values in TI notes SLUAAG4/SLUAAG5). The averaged model is my construction and must be labelled as such.</td>
+</tr>
+<tr>
+<td>INA214</td>
+<td>TI publishes PSpice/TINA models <span class="tag">[recall]</span></td>
+<td>Behavioural: gain 100, GBW for 14 kHz bandwidth, input bias and offset from the datasheet is enough</td>
+</tr>
+<tr>
+<td>LM66200</td>
+<td>TI PSpice model <span class="tag">[recall]</span></td>
+<td>Behavioural ideal diodes with 40 mΩ and comparator delays (2 µs / 8 µs, audit 3.4)</td>
+</tr>
+<tr>
+<td>TLV75533, TPS7A2033</td>
+<td>TI PSpice models <span class="tag">[recall]</span></td>
+<td>Behavioural LDO with dropout, PSRR pole, output impedance</td>
+</tr>
+<tr>
+<td>SMBJ15CA, SMF5.0CA</td>
+<td>Littelfuse/Vishay SPICE or datasheet V–I points</td>
+<td>Piecewise model from breakdown, clamp voltage and dynamic resistance</td>
+</tr>
+<tr>
+<td>MLCCs</td>
+<td>Murata SimSurfing / Samsung bias data</td>
+<td>Use derated values: 22 µF 1206 ≈ 5–6 µF at 12.6 V, 22 µF 0805 ≈ 10.7 µF at 5 V, 1 µF 0402 ≈ 0.55 µF at 5 V (figures from the audit)</td>
+</tr>
+<tr>
+<td>LiPo and leads</td>
+<td>R = 5–20 mΩ, L = 0.2–2 µH</td>
+<td>Parameter sweep</td>
+</tr>
+<tr>
+<td>STM32F765 I/O</td>
+<td>ST IBIS file <span class="tag long">[recall: published on st.com]</span></td>
+<td>Needed only for 5.D</td>
+</tr>
+</tbody>
+</table></div>
+<div class="scroll wide"><table class="c8">
+<thead>
+<tr>
+<th>ID</th>
+<th>Question</th>
+<th>Nets / parts</th>
+<th>Best tool</th>
+<th>Free, headless here</th>
+<th>Pass / fail</th>
+<th>Hours</th>
+<th>Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B1</td>
+<td>Peak voltage at U5 <code>VIN2</code> when USB is plugged in; does series damping fix it without starving the board?</td>
+<td><code>VBUS</code>: service <code>C1</code>, cable, upper <code>C2</code>, <code>D3</code>, <code>U5</code>; then <code>+5V_SYS</code> <code>C3</code>, <code>C4</code></td>
+<td>LTspice or PSpice with vendor TVS model</td>
+<td>ngspice transient, sweep L 0.2–2 µH, R 0.1–0.6 Ω, source 4.75–5.5 V, capacitor tolerance</td>
+<td>Peak ≤ 5.8 V in every corner (abs max 6.0 V). With the fix: drop ≤ 100 mV at 0.5 A</td>
+<td>1.5</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>B2</td>
+<td>Peak voltage on <code>VESC</code> and peak current in <code>D1</code> at battery connection; inrush into four 22 µF capacitors; behaviour with an ESC's low-ESR bulk capacitor on the <code>ESC+</code> pad.</td>
+<td><code>VBAT</code>, <code>VESC</code>, <code>R1</code>, <code>D1</code>, <code>C10/11/20/21</code>, <code>U3</code> inputs through <code>R2</code>/<code>R3</code></td>
+<td>same</td>
+<td>ngspice transient</td>
+<td><code>VESC</code> ≤ 22 V (INA214 26 V, capacitors 25 V); TVS pulse energy inside its 10/1000 µs rating; INA input current ≤ 5 mA</td>
+<td>1.5</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>B3</td>
+<td>Loop gain, phase margin, load-step response, start-up into capacitive load, full-load release overshoot for U1/U2.</td>
+<td><code>SW1/2</code>, <code>FB1/2</code>, <code>L1/2</code>, <code>C15/16/25/26</code>, <code>R10–12</code>, <code>R20–22</code>, <code>SS</code> 33 nF</td>
+<td>TI WEBENCH or PSpice for TI with TI's model; SIMPLIS for a clean Bode plot (no TI SIMPLIS model exists for this part)</td>
+<td>ngspice averaged model on this server as a cross-check</td>
+<td>Phase margin ≥ 45°, gain margin ≥ 10 dB for Vin 6–12.6 V, load 0.05–3 A, Cout 12–27 µF plus 0–1000 µF external; step 0.5↔2.5 A at 1 A/µs stays within 4.75–5.25 V; full-load release peak ≤ 5.5 V; start-up monotonic into 470 µF + 1 A with no hiccup</td>
+<td>4–6</td>
+<td>partly (averaged model yes; TI model no)</td>
+</tr>
+<tr>
+<td>B3d</td>
+<td>Enable and RT pin treatment.</td>
+<td>U1/U2 lower pads 1, 2</td>
+<td>–</td>
+<td>Datasheet reading; then a divider <code>VESC</code>–R–<code>EN</code>–R–<code>GND</code> sized so EN stays under 6 V at the 24.4 V clamp and above the threshold at 5.5 V in</td>
+<td>EN never floating; EN ≤ 5.5 V at 24.4 V; regulator on at 5.6 V battery</td>
+<td>1</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>B4</td>
+<td>Supply selector hand-over: USB plugged and unplugged while on battery, battery plugged while on USB, USB slightly above 5.06 V. Does <code>+3V3</code> glitch?</td>
+<td><code>U5</code>, <code>+5V</code>, <code>VBUS</code>, <code>+5V_SYS</code>, <code>R16‖R17</code>, <code>C5</code>, <code>U6</code>, <code>+3V3</code></td>
+<td>TI model in PSpice</td>
+<td>ngspice with behavioural LM66200</td>
+<td><code>+5V_SYS</code> dip ≤ 300 mV; <code>+3V3</code> stays ≥ 3.13 V; no reverse current &gt; 1 mA into either source for &gt; 10 µs</td>
+<td>2</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>B5</td>
+<td>Worst-case and Monte Carlo over tolerances, temperature and capacitor bias. Outputs: <code>+5V</code> set-point, <code>+3V3</code> headroom on battery and on weak USB with SD write bursts (0.1–0.2 A steps through 2.35 Ω), <code>BOOT0</code> level, battery-voltage and current reading error, zero-current dead band.</td>
+<td><code>R10–12</code>, <code>R4</code>/<code>R5</code>, <code>R14</code>/<code>C50</code>, <code>R1</code>, <code>R2</code>/<code>R3</code>, <code>U3</code>, VREF+ = <code>VDDA</code> from <code>U6</code></td>
+<td>Excel/Mathcad, or SPICE Monte Carlo</td>
+<td>numpy, 100 000 draws; SPICE not needed</td>
+<td><code>+5V</code> 4.85–5.25 V at 3σ; battery voltage ±3 % uncalibrated; current ±5 % uncalibrated above 5 A and ±2 % after one-point calibration; <code>+3V3</code> ≥ 3.13 V at 4.4 V USB with 0.35 A</td>
+<td>3</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>B6</td>
+<td>Crystal start-up margin, load capacitance and drive level. 8 MHz: <code>C21</code>/<code>C22</code> are on the opposite side from <code>Y1</code>, each net has two vias (7.1 and 9.1 mm) <span class="tag">[measured]</span>. 27 MHz: no external capacitors; the required load is not stated by the OSD chip's datasheet (audit, could-not-verify 6).</td>
+<td><code>Y1</code>, <code>C21</code>, <code>C22</code>, <code>OSC_IN/OUT</code>; <code>Y2</code>, <code>OSD_X1/X2</code></td>
+<td>ST AN2867 method; crystal vendor's own check service</td>
+<td>Python: gm_crit = 4·ESR·(2πf)²·(C0+CL)², stray capacitance from track and via geometry</td>
+<td>8 MHz: gm_crit ≤ 1 mA/V (ST's limit for this oscillator <span class="tag">[doc: audit 3.7]</span>) with ESR at the crystal's maximum; CL error ≤ 2 pF; drive ≤ crystal rating. 27 MHz: cannot be closed on paper; test on hardware (video line frequency within the PAL/NTSC tolerance)</td>
+<td>1.5</td>
+<td>yes (8 MHz)</td>
+</tr>
+<tr>
+<td>B7</td>
+<td>Reset and boot timing: <code>NRST</code> RC (40 kΩ internal, 100 nF), <code>+3V3</code> rise with the 2.35 Ω feed, <code>BOOT0</code> sampled at reset release when the button is held and USB is the only supply.</td>
+<td><code>NRST</code>, <code>C23</code>, <code>BOOT0</code>, <code>R1</code> upper, service <code>R4</code>, <code>SW1</code></td>
+<td>–</td>
+<td>ngspice</td>
+<td><code>NRST</code> released after <code>+3V3</code> &gt; 3.0 V; <code>BOOT0</code> ≥ 1.4 V at that moment over VBUS 4.4–5.5 V</td>
+<td>1</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>B8</td>
+<td>Buzzer driver: turn-off spike with the 100 mm cable, Q2 dissipation, effect of 190 mA pulses on <code>+5V_SYS</code> and on the OSD picture.</td>
+<td><code>Q1</code>, <code>Q2</code>, <code>R13</code>, <code>R18</code>, <code>BUZ_OUT</code>, service <code>BZ1</code>, <code>D1</code></td>
+<td>–</td>
+<td>ngspice (2N7002 and AO3401A have public models; coil as 16 Ω + ~1 mH <span class="tag inf">[inference]</span>)</td>
+<td><code>BUZ_OUT</code> between −0.5 V and +5.5 V; <code>+5V_SYS</code> ripple from the buzzer ≤ 50 mV</td>
+<td>1</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>B9</td>
+<td>Current-sense signal chain: frequency response from shunt to ADC, response to ESC ripple (10–50 kHz, several amps), aliasing at ArduPilot's sample rate, common-mode step rejection.</td>
+<td><code>R1</code>, <code>NT1/2</code>, <code>R2</code>, <code>R3</code>, <code>C3</code>, <code>U3</code>, <code>R15</code>, <code>C51</code></td>
+<td>TI TINA with the INA214 model</td>
+<td>ngspice behavioural</td>
+<td>−3 dB between 1 and 2 kHz at the ADC; ripple at the ADC ≤ 1 % of reading for 10 A p-p at 24 kHz</td>
+<td>1.5</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>B10</td>
+<td>Video path levels: input clamp with 100 nF coupling, output swing into 75 Ω, DC-coupled output (<code>SAG</code> tied to <code>VOUT</code>).</td>
+<td><code>C44</code>, <code>R10</code>, <code>R11</code>, <code>U4</code></td>
+<td>–</td>
+<td>Hand check only; no model of the AT7456E exists</td>
+<td>Matches the chip's typical circuit (audit 3.7 says it does)</td>
+<td>0.5</td>
+<td>no</td>
+</tr>
+</tbody>
+</table></div></details>
+<details class="sec sub" id="s5c"><summary>5.C Power integrity</summary><div class="scroll wide"><table class="c8">
+<thead>
+<tr>
+<th>ID</th>
+<th>Question</th>
+<th>Nets / files</th>
+<th>Best tool</th>
+<th>Free, headless here</th>
+<th>Inputs</th>
+<th>Pass / fail</th>
+<th>Hours</th>
+<th>Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1</td>
+<td>DC voltage drop, current density and via current on the 50 A loop and on each rail. Specifically: how much current do the inner and bottom layers carry between <code>J10</code> and <code>R1</code> (expected: none), what is the peak density at the shunt pad edges, how does 50 A share among the 12 pad holes, what is the drop on <code>+5V</code> from <code>L1</code> to the furthest header pin on the upper board through the connector.</td>
+<td>lower: <code>VBAT</code>, <code>VESC</code>, <code>GND</code> zones, <code>R1</code>, <code>J10–J13</code>; <code>+5V</code>, <code>+5V_PI</code>; upper: <code>+5V</code> (0.24 mm neck), <code>+5V_SYS</code>, <code>+3V3</code> plane</td>
+<td>Ansys SIwave DC IR, Cadence Sigrity PowerDC / Celsius, Keysight PIPro DC, HyperLynx DC Drop, Altium Power Analyzer by Keysight</td>
+<td>(a) Own 2.5D resistive-grid solver: rasterise each layer's filled copper at 50 µm from <code>pcbnew</code>, link layers with via and pad-hole resistors, solve with <code>scipy.sparse</code>. No install. (b) <strong>padne</strong> (GPL-3, 2.5D FEM, reads KiCad projects, <code>padne solve</code>, sources set by text directives in the schematic) or <strong>KiPI</strong> 1.0.1 (GPL-3, reads <code>.kicad_pcb</code> for KiCad 7–10, DC drop with via current and an optional temperature estimate) <span class="tag">[web]</span>. Both need installing; KiPI's headless solve is not documented.</td>
+<td>Copper thickness (finished 2 oz ≈ 70 µm outer, 0.5 oz or 1 oz inner per the chosen stack-up), plating 18–25 µm, copper temperature</td>
+<td>Path resistance excluding the shunt ≤ 0.2 mΩ positive and ≤ 0.1 mΩ return; peak density ≤ 100 A/mm² away from pad corners; no via above 6 A; <code>+5V</code> drop to the upper header ≤ 150 mV at 2 A; <code>+5V_SYS</code> drop ≤ 100 mV at 1 A</td>
+<td>6–8 (a), 3–4 (b) once installed</td>
+<td>yes (a)</td>
+</tr>
+<tr>
+<td>C2</td>
+<td>Does the Kelvin tap see only the shunt? Voltage picked up between the taps from copper and solder, and from the 50 A loop's changing field in the sense loop.</td>
+<td><code>NT1</code> at (−9.45, 16.0), <code>NT2</code> at (−5.55, 17.2); <code>ISENSE_P</code> 6.5 mm, <code>ISENSE_N</code> 10.2 mm on two layers, not routed as a pair <span class="tag">[measured]</span></td>
+<td>SIwave / Q3D</td>
+<td>From C1's solution: potential difference between the two tap points with the shunt modelled as 0.5 mΩ. Loop pickup: area between the two sense tracks times dB/dt, by hand</td>
+<td>Shunt element geometry from the Yezhan drawing</td>
+<td>DC gain error from copper ≤ 2 % (it is calibrated out, but must be stable with temperature); AC pickup ≤ 1 % of full scale at 10 A p-p, 24 kHz</td>
+<td>1.5</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>C3</td>
+<td>Decoupling and PDN impedance of <code>+3V3</code>, <code>VDDA</code>, <code>VCAP1/2</code>, <code>+3V3_SENS</code>, <code>+5V_SYS</code> seen from U1, U2, U4. The plane pair <code>In1</code>/<code>In4</code> is 1.2 mm apart, so plane capacitance is negligible; everything depends on capacitor mounting inductance. Several capacitors share the pin's via <span class="tag">[doc: layout review]</span>.</td>
+<td>upper: <code>C10–C20</code>, <code>C30–C34</code>, <code>C40–C43</code>, 38 <code>GND</code> and 16 <code>+3V3</code> vias</td>
+<td>SIwave PI, Sigrity PowerSI/OptimizePI, PIPro AC</td>
+<td>Lumped model in ngspice: each capacitor as C–ESR–ESL plus mounting inductance from pad-to-via distance (20 nH/inch rule or FastHenry (install) for the loop), LDO output impedance, ferrite <code>FB1</code>. KiPI's AC mode is the closest free field tool <span class="tag">[web]</span> (install).</td>
+<td>Capacitor ESL/ESR from vendor data, LDO models</td>
+<td>Target impedance: <code>+3V3</code> ≤ 1 Ω from 100 kHz to 50 MHz (0.1 A step, 3 % ripple) <span class="tag inf">[inference]</span>; no anti-resonance peak above 2 Ω; <code>VDDA</code> ≤ 5 Ω with <code>FB1</code> not peaking (check FB1/C19/C20 Q)</td>
+<td>4</td>
+<td>partly</td>
+</tr>
+<tr>
+<td>C4</td>
+<td>Input ripple and RMS current in the regulator input capacitors with an ESC drawing pulsed current on the same <code>VESC</code> plane.</td>
+<td><code>C10/11/20/21</code>, <code>VESC</code> plane (<code>In2</code>)</td>
+<td>PSpice with TI model</td>
+<td>ngspice, from B2's netlist with a pulsed 10–30 A load</td>
+<td>Capacitor RMS ≤ rating (≈ 2–3 A for 1206 X5R, check Samsung data); ripple at U1 <code>VIN</code> ≤ 0.5 V p-p</td>
+<td>1</td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>C5</td>
+<td>Ground bounce between the lower and upper boards through six ground pins while 3 A flows to the header and servos.</td>
+<td><code>J1</code>/<code>J3</code> pins 1, 2, 10, 14, 19, 20</td>
+<td>–</td>
+<td>Hand calculation with Samtec contact resistance and C1's result</td>
+<td>Samtec datasheet</td>
+<td>≤ 30 mV DC between board grounds at 3 A; note that ADC readings reference the upper ground</td>
+<td>0.5</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table></div></details>
+<details class="sec sub" id="s5d"><summary>5.D Signal integrity</summary><p>Which nets matter on this board, in order: analogue video (noise, not reflections); <code>SD_CK</code> and SD data (fastest edges, 25–50 MHz); <code>IMU_SCK</code> (16 MHz per <code>hwdef.dat</code> line 56, next to an analogue sensor); DShot outputs M1–M6 (300–600 kbit/s but 1–2 ns edges into long ESC leads, and two of them bidirectional); crystal nets (coupling in and out); ADC inputs; USB full speed (12 Mbit/s: timing is not critical, immunity is). Nothing here needs controlled impedance or length matching; the existing statement on that is correct.</p>
+<div class="scroll wide"><table class="c8">
+<thead>
+<tr>
+<th>ID</th>
+<th>Question</th>
+<th>Nets</th>
+<th>Best tool</th>
+<th>Free, headless here</th>
+<th>Inputs</th>
+<th>Pass / fail</th>
+<th>Hours</th>
+<th>Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>Return paths. For every signal via that changes reference plane (top is over <code>GND</code>, bottom is over <code>+3V3</code>, inner layers are 0.55 mm from either), is there a ground via or a decoupling capacitor close by? Do tracks cross gaps in their reference plane?</td>
+<td>all 184 vias on the upper board; <code>In1.Cu</code>, <code>In4.Cu</code> fills</td>
+<td>HyperLynx DRC (has exactly these rules), SIwave EMI scanner, Cadence</td>
+<td>Python over <code>pcbnew</code>: nearest <code>GND</code> via per signal via; rasterise plane fills and test each track for voids underneath</td>
+<td>–</td>
+<td>Every signal via has a <code>GND</code> via within 2 mm (clock and video nets: 1 mm); no track of the D-list nets crosses a void longer than 1 mm; every top-layer pour island has ≥ 2 ground vias or is removed</td>
+<td>3</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>D2</td>
+<td>Crosstalk into the quiet nets. Coupled length and spacing of every neighbour of <code>CAM_IN</code>, <code>VTX_OUT</code>, <code>OSD_VIN</code>, <code>VBAT_ADC</code>, <code>CURR_ADC</code>, <code>OSC_IN</code>, <code>OSC_OUT</code>, <code>NRST</code>, including broadside coupling between <code>In2</code> and <code>In3</code> (0.1 mm apart). The earlier scan reported longest runs only.</td>
+<td>as listed. <span class="tag">[measured]</span> closest approaches 0.47–0.55 mm; <code>VTX_OUT</code> 0.51 mm from <code>OSC_IN</code> on <code>B.Cu</code></td>
+<td>HyperLynx, Sigrity, ADS with IBIS</td>
+<td>Python coupled-length table, then a two-line coupled-microstrip estimate (closed-form or a 2D field solve with a small finite-difference Laplace solver in numpy). openEMS through Antmicro's gerber2ems (needs KiCad 9, gerbv, openEMS; adaptive meshing added 2025 <span class="tag">[web]</span>) is the open full-wave route; install needed and overkill here.</td>
+<td>Stack-up heights and Dk (JLC06161H-3313: 3313 prepreg ≈ 0.10 mm, core 0.55 mm <span class="tag long">[recall; confirm on JLC's page]</span>)</td>
+<td>Video: aggressors ≤ −50 dB at the video nets in 0–6 MHz. ADC nets: ≤ 1 LSB (0.8 mV) after the 1.6 kHz filter. <code>NRST</code>: induced glitch ≤ 0.3 V</td>
+<td>3</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>D3</td>
+<td>Edge quality on <code>SD_CK</code>, <code>IMU_SCK</code>, DShot outputs with real driver models and no series resistors. <code>SD_CK</code> is 19.9 mm on two layers; M-lines are 8–20 mm on the upper board plus 14–22 mm on the lower, then 100–300 mm of wire to an ESC.</td>
+<td><code>SD_CK</code>, <code>SD_D0–3</code>, <code>SD_CMD</code>, <code>IMU_SCK</code>, <code>M1–M6</code>, <code>LED_STRIP</code></td>
+<td>HyperLynx LineSim/BoardSim, ADS, Sigrity with ST's IBIS</td>
+<td>ngspice with an IBIS-derived driver: KiCad's simulator can use IBIS models <span class="tag long">[recall; not verified for 9.0.9 from the CLI]</span>, otherwise convert the I–V/V–t tables to a behavioural source by script. Lossless transmission-line elements for the tracks and the ESC lead.</td>
+<td>ST IBIS for STM32F765 (GPIO speed setting from the generated hwdef), ESC input capacitance (assume 10–100 pF), track Z0 from D2</td>
+<td>Overshoot ≤ VDD + 0.3 V and undershoot ≥ −0.3 V at the receiver; monotonic through threshold on <code>SD_CK</code> and <code>IMU_SCK</code>; if not, the fix is a lower GPIO speed in the hwdef, not a board change</td>
+<td>4</td>
+<td>partly</td>
+</tr>
+<tr>
+<td>D4</td>
+<td>USB full-speed: skew, stubs, immunity. D+ 23.5 mm, D− 22.3 mm on different layers; then 100 mm of unshielded cable; ESD part at the far end only.</td>
+<td><code>USB_DP</code>, <code>USB_DM</code>, <code>J5</code>, service <code>U1</code></td>
+<td>USB compliance fixture on hardware</td>
+<td>Paper check only: FS rise time 4–20 ns allows this</td>
+<td>–</td>
+<td>Skew ≤ 1 ns (it is ≈ 10 ps); pass on hardware by enumeration 100/100 and no errors in a 1 GB transfer</td>
+<td>0.5</td>
+<td>no</td>
+</tr>
+<tr>
+<td>D5</td>
+<td>SD bus timing margins at the rate ArduPilot actually sets.</td>
+<td>SD nets, 17–32 mm; clock 19.9 mm <span class="tag">[measured]</span></td>
+<td>–</td>
+<td>Hand: worst mismatch to the clock 12 mm ≈ 0.08 ns</td>
+<td>Clock rate from the generated hwdef</td>
+<td>Setup/hold margin ≥ 2 ns at 50 MHz</td>
+<td>0.5</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>D6</td>
+<td>Bidirectional DShot on M1–M4: line turnaround with no series resistor and the board-to-board connector in the path.</td>
+<td><code>M1–M4</code>, <code>J1</code>/<code>J3</code></td>
+<td>–</td>
+<td>Covered by D3 plus hardware</td>
+<td>–</td>
+<td>Hardware: RPM telemetry error rate &lt; 1 %</td>
+<td>–</td>
+<td>no</td>
+</tr>
+</tbody>
+</table></div></details>
+<details class="sec sub" id="s5e"><summary>5.E Thermal</summary><div class="scroll wide"><table class="c8">
+<thead>
+<tr>
+<th>ID</th>
+<th>Question</th>
+<th>Parts</th>
+<th>Best tool</th>
+<th>Free, headless here</th>
+<th>Inputs</th>
+<th>Pass / fail</th>
+<th>Hours</th>
+<th>Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E1</td>
+<td>Steady-state temperature map of the lower board with 50 A through the shunt and both rails at 3 A, in still air inside an 8 mm gap and with 3–5 m/s across the stack.</td>
+<td><code>R1</code> 1.25 W; copper from C1 (0.5–1 W); <code>U1</code>, <code>U2</code> 0.8 W each; <code>L1</code>, <code>L2</code> 0.45 W each; <code>D2</code>; total 4–5 W</td>
+<td>Ansys Icepak, Cadence Celsius, Siemens Flotherm XT, Simcenter</td>
+<td>Own 2D heat-spreading grid on the same raster as C1: in-plane conductance from copper coverage per layer, uniform film coefficient (still air 8–12 W/m²K including radiation; forced 30–60 W/m²K <span class="tag inf">[inference]</span>), heat sources at pad areas. Elmer or the MIT-licensed <code>kicad_thermal_sim</code> plugin and the "Copper Thermal" plugin (has a CI mode <code>kct check</code>) are alternatives <span class="tag">[web]</span>; install needed, GUI-oriented.</td>
+<td>Joule map from C1; θJC/ψJT from TI (SLUAAF1 is TI's SOT-583 thermal note <span class="tag">[web]</span>)</td>
+<td>Still air: board ≤ 100 °C, U1/U2 junction ≤ 125 °C, shunt ≤ 130 °C, inductor ≤ 105 °C at 40 °C ambient. If not met in still air, state the airflow the rating needs and derate the "50 A continuous" claim in the README</td>
+<td>4–6</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>E2</td>
+<td>Transient: time to reach the limits at 50 A and at an 80 A burst; thermal time constant of the pad area.</td>
+<td>same</td>
+<td>same</td>
+<td>Lumped RC from E1 (copper mass of the rear third ≈ 1.5–2 g)</td>
+<td>–</td>
+<td>≥ 60 s at 50 A before 100 °C in still air; state the burst rating</td>
+<td>1.5</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>E3</td>
+<td>Upper board: U6 with its 2.35 Ω feed, the OSD chip (about 0.5 W at 5 V <span class="tag inf long">[inference from MAX7456 figures]</span>), the MCU, and what the IMU and barometer see. Heat rising from the lower board is the ambient here.</td>
+<td><code>U6</code>, <code>R16</code>, <code>R17</code>, <code>U4</code>, <code>U1</code>, <code>U2</code>, <code>U3</code></td>
+<td>same</td>
+<td>Same grid model for the upper board with the lower board's top temperature as the lower boundary</td>
+<td>–</td>
+<td>U6 junction ≤ 110 °C; IMU steady temperature ≤ 70 °C and gradient across the package ≤ 1 °C; barometer self-heating error noted</td>
+<td>3</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>E4</td>
+<td>Does the 5 V rating survive two regulators side by side? <code>U1</code> and <code>U2</code> are 17.6 mm apart with the connector between them.</td>
+<td><code>U1</code>, <code>U2</code>, <code>L1</code>, <code>L2</code></td>
+<td>same</td>
+<td>From E1</td>
+<td>–</td>
+<td>Junction ≤ 125 °C at 3 A each, 12.6 V, 50 °C local ambient; otherwise restate as "3 A peak, 2 A continuous"</td>
+<td>incl.</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table></div>
+<p>Honest limit: a 2D spreading model with a guessed film coefficient is good to about ±30 % on temperature rise. It ranks hot spots and shows whether the margin is 2× or 10 %. It does not replace a thermal camera, and it cannot model the wire: four 12 AWG leads soldered to the pads remove a large part of the shunt heat <span class="tag inf">[inference]</span>, which makes the bare-board result pessimistic.</p></details>
+<details class="sec sub" id="s5f"><summary>5.F EMC, EMI and ESD</summary><p>No compliance mark is being sought. The practical targets are: do not jam the aircraft's own GPS and radio receivers, keep the OSD picture clean, and survive handling.</p>
+<div class="scroll wide"><table class="c8">
+<thead>
+<tr>
+<th>ID</th>
+<th>Question</th>
+<th>Parts / nets</th>
+<th>Best tool</th>
+<th>Free, headless here</th>
+<th>Pass / fail</th>
+<th>Hours</th>
+<th>Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1</td>
+<td>Hot-loop area of each regulator: <code>VIN</code> pin → input capacitors → <code>GND</code> pin, and the size of the switch-node copper. Compare with TI's EVM layout (SLUUCH1).</td>
+<td>U1: <code>VESC</code> pad (−3.34, 8.65), <code>GND</code> pad (−3.34, 9.15), <code>C12</code> 100 nF at (−2.8, 10.6), <code>C10</code> at (−5.1, 8.9), <code>C11</code> at (−4.4, 12.5); <code>SW1</code> zone 3.4 × 3.0 mm <span class="tag">[measured]</span></td>
+<td>Ansys Q3D / SIwave, Simbeor</td>
+<td>Python: polygon area of the loop through the nearest 100 nF and through the first 22 µF; loop inductance ≈ 1 nH per mm² of loop over a plane at 0.2 mm [rule of thumb]. FastHenry (install) for a number.</td>
+<td>100 nF loop ≤ 3 mm² (≈ 2 nH); 22 µF loop ≤ 10 mm²; switch node ≤ 12 mm²; ground return for the loop on the top layer without going through a single via</td>
+<td>2</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>F2</td>
+<td>Tracks under or beside the inductors and switch nodes. <span class="tag">[measured]</span> <code>LED_STRIP</code> runs on the top layer under the body of <code>L2</code> (0.11 mm from its centre) and 1.7 mm from the <code>SW2</code> copper; <code>M4</code>–<code>M6</code> and both sense lines pass under <code>L1</code>/<code>L2</code>/<code>SW</code> on the bottom layer with two planes in between.</td>
+<td>lower: <code>LED_STRIP</code>, <code>M1–M6</code>, <code>CURR_SENSE</code>, <code>VBAT_SENSE</code></td>
+<td>–</td>
+<td>Python proximity report (the query used for this plan is in the scratch folder)</td>
+<td>No top-layer signal under an inductor or within 1 mm of switch-node copper. <code>LED_STRIP</code> fails this today: accept with a hardware test (LED strip glitches at 3 A load on <code>+5V_PI</code>) or re-route</td>
+<td>1</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>Two free-running 500 kHz regulators beat against each other. Where does the difference frequency land, and does it reach <code>+3V3_SENS</code> or the video?</td>
+<td><code>+5V</code>, <code>+5V_PI</code>, <code>+5V_SYS</code>, <code>U7</code>, <code>U4</code></td>
+<td>–</td>
+<td>From B3: ripple spectrum through <code>U5</code> and the LDO PSRR</td>
+<td>Beat component at the IMU supply ≤ 100 µV; on the OSD supply ≤ 5 mV. Otherwise add an RT resistor to one regulator to separate them by &gt; 100 kHz</td>
+<td>1</td>
+<td>no</td>
+</tr>
+<tr>
+<td>F4</td>
+<td>Board as an antenna: unstitched pour islands, cable-attached nets without filtering (every header pin is wired straight to an MCU pin), resonance of the <code>In1</code>/<code>In4</code> cavity.</td>
+<td>upper pours (30 islands on <code>F.Cu</code>), header <code>J1</code>, <code>J5</code></td>
+<td>CST, HFSS, SIwave resonance and near-field</td>
+<td>D1's island and stitching report. A full-wave radiated estimate of the whole board is not practical here (8 GB RAM; openEMS not installed).</td>
+<td>Every island stitched or removed; first plane-cavity resonance (≈ 1.5 GHz for a 48 mm board <span class="tag inf">[inference]</span>) noted next to the GPS L1 band and checked on hardware</td>
+<td>incl. in D1</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>F5</td>
+<td>ESD paths. USB shield is tied straight to ground (<code>gen/service.py:24</code>); data lines are clamped on the service board only; no protection on any header pin, <code>CAM</code>, <code>VTX</code>, motor outputs (design review N12).</td>
+<td><code>J1</code> upper, <code>J5</code>, service <code>J1</code>/<code>U1</code>, <code>U4</code></td>
+<td>–</td>
+<td>Review plus a decision list</td>
+<td>Decide per pin group: accept, or add series 22–100 Ω on <code>CAM</code>/<code>VTX</code>/UART (parts exist in <code>gen/parts.py</code>). The OSD chip family is known in the hobby for dying from VTX supply spikes <span class="tag">[recall]</span></td>
+<td>1</td>
+<td>no</td>
+</tr>
+<tr>
+<td>F6</td>
+<td>Conducted noise back into the battery leads from two 3 A bucks with about 11 µF effective input capacitance each.</td>
+<td><code>VESC</code></td>
+<td>LISN and analyser on hardware; PSpice</td>
+<td>From C4</td>
+<td>Ripple current into the battery lead ≤ 0.3 A rms at 500 kHz <span class="tag inf long">[inference; the ESC's own ripple is far larger]</span></td>
+<td>incl.</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table></div></details>
+<details class="sec sub" id="s5g"><summary>5.G Mechanical and 3D</summary><div class="scroll wide"><table class="c8">
+<thead>
+<tr>
+<th>ID</th>
+<th>Question</th>
+<th>Parts / files</th>
+<th>Best tool</th>
+<th>Free, headless here</th>
+<th>Inputs</th>
+<th>Pass / fail</th>
+<th>Hours</th>
+<th>Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G1</td>
+<td>First natural frequencies and mode shapes of the upper board as mounted (three standoffs, the connector as a fourth compliant support, header mass at the front edge), and the strain at the IMU for a 5 N pull on the header cables.</td>
+<td>upper board, <code>U2</code>, <code>J1</code>, <code>J3</code>, <code>H1–H3</code>; <code>docs/boards/upper/upper.step</code></td>
+<td>Ansys Mechanical, SolidWorks Simulation, Abaqus</td>
+<td>Step 1, no install: plate-theory estimate and a small Kirchhoff-plate finite-difference model in numpy (31.5 × 48 × 1.6 mm FR-4, E ≈ 22 GPa, point supports, lumped masses). Step 2 if marginal: FreeCAD FEM with CalculiX on the STEP file (install).</td>
+<td>Part masses (header ≈ 3 g <span class="tag inf">[inference]</span>, MCU 0.7 g, connector), FR-4 properties</td>
+<td>No mode below 1 kHz with the cables free; strain at the IMU ≤ 100 µε for 5 N on the header. If it fails: a fourth standoff near (−12.3, 15.9), a standoff or adhesive post forward of the IMU, or move U2 next to a standoff</td>
+<td>3–4</td>
+<td>step 1 yes</td>
+</tr>
+<tr>
+<td>G2</td>
+<td>Statistical stack-up of the board-to-board gap: standoff 8.00 ± 0.13 mm plus two solder joints, connector seated at 7.65 mm with 8.38 mm maximum (0.35 mm short of seated by design), board bow, coplanarity. Then the header tail clearance over the lower board.</td>
+<td><code>H1–H3</code>, <code>J1</code> lower, <code>J3</code> upper, upper <code>J1</code> tails; <code>research/samtec-b2b.md</code>, <code>research/header-clearance.md</code></td>
+<td>CETOL, 3DCS</td>
+<td>numpy Monte Carlo</td>
+<td>Samtec mated-height and wipe data, Sinhoo tolerance, JLC bow limit 0.75 %</td>
+<td>≥ 99.7 % of builds leave ≥ 0.5 mm contact wipe; tail-to-wire clearance ≥ 0.5 mm with flush-cut tails</td>
+<td>2</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>G3</td>
+<td>Lateral alignment of the connector pair when each half is placed by the pick-and-place machine and the standoffs are reflowed in 3.75 mm holes (they float). <code>check_stack.py</code> reports a worst pin offset of 0.67 mm <span class="tag long">[doc: verification report]</span>; that number needs explaining against a 1.27 mm pitch.</td>
+<td><code>J1</code>/<code>J3</code>, <code>H1–H3</code></td>
+<td>–</td>
+<td>Read <code>check_stack.py</code>'s tolerance, then RSS of placement (±0.1 mm), standoff float (±0.1 mm), hole clearance (2.2 mm hole on M2: ±0.1 mm)</td>
+<td>–</td>
+<td>Explain the 0.67 mm figure (if it is a real pad-centre offset it is a defect; if it is a pad-length artefact, document it). Assembly order must mate the connector before tightening the screws</td>
+<td>1</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>G4</td>
+<td>Pull-off and shear strength of three reflowed standoffs holding the upper board against cable loads and crashes; paste coverage was questioned in the audit (finding 13).</td>
+<td><code>H1–H3</code></td>
+<td>–</td>
+<td>PEM's published push-out figures for SMTSO parts scaled by paste coverage</td>
+<td>–</td>
+<td>Rated push-out ≥ 5× the expected cable load (about 20 N); otherwise enlarge the paste ring</td>
+<td>0.5</td>
+<td>no</td>
+</tr>
+<tr>
+<td>G5</td>
+<td>Grommet isolation: natural frequency of the stack on four silicone grommets, and how much the power leads short-circuit it.</td>
+<td>grommets at (±10, ±10), 4 mm holes; stack mass</td>
+<td>–</td>
+<td>Hand estimate; no grommet data exists (<code>docs/verification.md</code>: "No maker's dimension drawing was found")</td>
+<td>Mass of the stack (≈ 15–20 g), grommet stiffness (unknown)</td>
+<td>Cannot be closed on paper. Hardware criterion in J11</td>
+<td>0.5</td>
+<td>no</td>
+</tr>
+<tr>
+<td>G6</td>
+<td>3D interference with real parts at tolerance: grommet nut zones, 12 AWG wire and solder blob height at the pads inside the 8 mm gap, card removal, USB plug over-mould.</td>
+<td>STEP files of both boards</td>
+<td>SolidWorks, Fusion</td>
+<td><code>check_stack.py</code> already does the height budget. Extend it with a wire-joint envelope (pad area × 4 mm tall is assumed today) and a solder-blob allowance</td>
+<td>–</td>
+<td>≥ 0.5 mm to the upper board's bottom-side parts above the pads</td>
+<td>1</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table></div></details>
+<details class="sec sub" id="s5h"><summary>5.H Firmware and hardware co-verification</summary><div class="scroll wide"><table class="c8">
+<thead>
+<tr>
+<th>ID</th>
+<th>Question</th>
+<th>Files</th>
+<th>Tool</th>
+<th>Pass / fail</th>
+<th>Hours</th>
+<th>Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H1</td>
+<td>Timer, DMA and alternate-function review beyond "it compiles". <span class="tag long">[measured from <code>firmware/bin/hwdef.generated.h</code>]</span> SPI2 RX (OSD) shares DMA 1/1 with UART7 TX; TIM5 CH3 and UP share 1/0; five UARTs are <code>NODMA</code>; M5/M6 are on TIM8 complementary outputs, so bidirectional DShot is limited to M1–M4. Is each of these acceptable for the intended use (for example a 420 kbaud receiver on a <code>NODMA</code> port)?</td>
+<td><code>hwdef.dat</code>, <code>hwdef.generated.h</code>, ArduPilot's <code>MatekF765-Wing/hwdef.dat</code> (present locally)</td>
+<td>Script: diff the pin, timer and DMA lines against the Matek reference; STM32CubeMX (free, GUI) as an independent clash check</td>
+<td>Every difference from the reference explained; a table in <code>docs/firmware.md</code> of which port supports what</td>
+<td>2</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>H2</td>
+<td>Does the built image boot and find its sensors?</td>
+<td><code>firmware/bin/arducopter.bin</code></td>
+<td>ArduPilot's Renode flow, <code>Tools/renode/run.py &lt;board&gt;</code> (present in the local tree; the docs list F7 among supported families, generate the platform from the hwdef, and provide functional IMU, baro, SD and battery models; a patched Renode is recommended; "not intended for flight testing or tuning" <span class="tag">[web: ardupilot.org]</span>). Renode itself is not installed and would be a downloaded binary.</td>
+<td>Boot to MAVLink heartbeat; IMU, baro, SD and OSD probes succeed; no <code>Config error</code></td>
+<td>3 (if Renode can be run)</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>H3</td>
+<td>Does the parameter set and mission logic work for the intended airframe?</td>
+<td>defaults</td>
+<td>SITL: local tree, or the <code>droneserver-sitl-arducopter:4.5.7</code> image (older than the firmware)</td>
+<td>Standard ArduPilot autotest subset passes with this board's default parameters</td>
+<td>2</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>H4</td>
+<td>Simulation on hardware once a board exists: the real MCU runs the flight code against ArduPilot's built-in physics.</td>
+<td><code>Tools/scripts/sitl-on-hardware/</code> (present)</td>
+<td><code>sitl-on-hw.py</code> build with <code>env SIM_ENABLED 1</code> <span class="tag">[web]</span></td>
+<td>Simulated flight for 30 min with real SD logging and real OSD, no watchdog reset, CPU load &lt; 70 %</td>
+<td>3</td>
+<td>no</td>
+</tr>
+<tr>
+<td>H5</td>
+<td>Things emulation cannot show: analogue accuracy, DShot timing on the wire, USB electrical behaviour, DFU entry through <code>BOOT0</code>, crystal start-up, IMU orientation, brown-out.</td>
+<td>–</td>
+<td>Hardware only</td>
+<td>–</td>
+<td>–</td>
+<td>no</td>
+</tr>
+<tr>
+<td>H6</td>
+<td>Small definition gaps. No VBUS-sense pin is defined (PA9 is <code>USART1_TX</code>), so the firmware cannot tell USB power from battery power; no 5 V rail monitor; <code>IMU1_INT</code> unused; no RC input default.</td>
+<td><code>hwdef.dat</code></td>
+<td>Review</td>
+<td>Each accepted in writing or fixed in the hwdef</td>
+<td>0.5</td>
+<td>no</td>
+</tr>
+</tbody>
+</table></div></details>
+<details class="sec sub" id="s5i"><summary>5.I Sourcing, lifecycle and assembly</summary><div class="scroll wide"><table class="c8">
+<thead>
+<tr>
+<th>ID</th>
+<th>Question</th>
+<th>Parts</th>
+<th>Tool</th>
+<th>Pass / fail</th>
+<th>Hours</th>
+<th>Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I1</td>
+<td>Lifecycle of every active part on the day of order. BMP388 is reported "not for new designs" on Bosch's product page with BMP390 as successor <span class="tag long">[web: search result; Bosch page itself returned 404 to me]</span>. TPS62933 is ACTIVE <span class="tag">[web: ti.com]</span>.</td>
+<td>all ICs</td>
+<td>Manufacturer pages; SiliconExpert or Z2Data (paid) for a formal report</td>
+<td>No part at NRND/EOL without a tested footprint-compatible alternative written into the BOM. BMP390 is the same LGA-10 package <span class="tag">[recall]</span>; the firmware line would change</td>
+<td>1.5</td>
+<td>no</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>Stock and the build quantity. Samtec FTSH header 5 in stock, STM32F765 48, TPS62933 36 at JLCPCB (two per board) <span class="tag">[doc]</span>.</td>
+<td><code>J3</code> upper, <code>U1</code>, lower <code>U1</code>/<code>U2</code></td>
+<td>JLCPCB parts search by hand, or their API if the owner has a key</td>
+<td>Stock ≥ 1.2 × build quantity for every line, or the part is pre-ordered before the PCB order is paid</td>
+<td>0.5</td>
+<td>partly</td>
+</tr>
+<tr>
+<td>I3</td>
+<td>BOM ↔ footprint ↔ placement consistency: every fitted footprint appears once in the CPL, on the right side, with the LCSC part's package matching the footprint; "hand" and DNP parts absent from the JLC files; rotation table applied.</td>
+<td><code>fab/*/*-bom-jlc.csv</code>, <code>*-cpl-jlc.csv</code>, boards</td>
+<td>Python</td>
+<td>Zero mismatches</td>
+<td>1.5</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>I4</td>
+<td>Counterfeit and clone exposure. IMU alternates listed as "ICM-42688-P" from other makers are untested (<code>research/parts.md</code> line 46); the inductor is a no-name moulded part whose saturation at temperature is unknown.</td>
+<td><code>U2</code>, <code>L1</code>, <code>L2</code></td>
+<td>Buy the IMU from the listed TDK stock only; measure one inductor's saturation on the bench (pulse test)</td>
+<td>Inductance ≥ 70 % of nominal at 4.2 A, 85 °C</td>
+<td>1 (hardware)</td>
+<td>no</td>
+</tr>
+<tr>
+<td>I5</td>
+<td>Moisture and process: MSL of the LGA sensors, double-sided reflow of the upper board (which side second; are heavy parts on the first side?), no-clean only, no ultrasonic.</td>
+<td>upper <code>U2</code>, <code>U3</code>, <code>J3</code> on the bottom, <code>J4</code></td>
+<td>Review with the assembler</td>
+<td>Bottom side (with <code>J3</code>, <code>U5</code>, <code>Y2</code>) reflowed first only if those parts hold by surface tension; <code>J3</code> weight per pad area checked</td>
+<td>0.5</td>
+<td>no</td>
+</tr>
+<tr>
+<td>I6</td>
+<td>Configuration control. The Gerbers were not regenerated from <code>gen/</code> after the last two changes; board files were patched in place and a full rebuild does not reproduce them <span class="tag">[doc: project notes]</span>. <code>verify.py</code> does not re-run the model-to-schematic comparison.</td>
+<td><code>gen/*.py</code>, <code>hardware/*</code></td>
+<td>Add the netlist-vs-model comparison from <code>gen/build.py</code> to <code>verify.py</code> as a read-only step</td>
+<td>Model netlist = committed schematic netlist for all three boards</td>
+<td>1.5</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table></div></details>
+<details class="sec sub" id="s5j"><summary>5.J Physical validation once boards exist</summary><p><code>docs/bringup.md</code> is a sound functional procedure. It lacks waveforms, margins, stress and anything statistical. Additions:</p>
+<p><strong>Instruments</strong></p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>Instrument</th>
+<th>Minimum</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Oscilloscope</td>
+<td>4 channels, ≥ 200 MHz, with spring-ground probe tips</td>
+<td>Rails, switch node, hot-plug peaks, DShot, SD clock</td>
+</tr>
+<tr>
+<td>Bench supply</td>
+<td>0–15 V, ≥ 5 A, programmable current limit; plus a 3S pack through a fuse for hot-plug tests</td>
+<td>Sections B–D of the existing procedure</td>
+</tr>
+<tr>
+<td>High-current source</td>
+<td>50 A at about 1 V into a shorting link from <code>ESC+</code> to <code>ESC−</code> (a server PSU or welding-type supply), or a 3S pack with a 60 A electronic load</td>
+<td>Thermal soak, sense calibration</td>
+</tr>
+<tr>
+<td>Electronic load</td>
+<td>0–5 A with ≥ 1 A/µs slew, or a MOSFET-switched resistor</td>
+<td>Regulator load steps</td>
+</tr>
+<tr>
+<td>Thermal camera</td>
+<td>Any; emissivity tape on the shunt</td>
+<td>E-series checks</td>
+</tr>
+<tr>
+<td>Four-wire milliohm meter or a 10 A source and a DMM</td>
+<td>0.01 mΩ resolution</td>
+<td>Path resistance against C1</td>
+</tr>
+<tr>
+<td>SWD probe with pogo pins</td>
+<td>ST-Link V3 or J-Link; pads <code>TP4</code>, <code>TP5</code>, <code>TP6</code>, <code>TP2</code></td>
+<td>Flashing when DFU fails, fault registers, GPIO walk</td>
+</tr>
+<tr>
+<td>Logic analyser</td>
+<td>≥ 100 MS/s, 8 channels</td>
+<td>SPI, I2C, DShot decode</td>
+</tr>
+<tr>
+<td>Near-field probe set and a spectrum analyser (a tinySA-class unit is enough)</td>
+<td>100 kHz – 3 GHz</td>
+<td>Hot-loop and clock emission map, GPS-band check</td>
+</tr>
+<tr>
+<td>USB power meter and a long, thin USB cable</td>
+<td>–</td>
+<td>Weak-USB dropout test</td>
+</tr>
+<tr>
+<td>Frequency counter or a GPS-disciplined reference</td>
+<td>1 ppm</td>
+<td>Crystal accuracy through MCO or the 1 kHz USB frame rate</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Fixtures</strong></p>
+<ul>
+<li>Pogo-pin plate for the six test pads and the three lower-board signal groups, so that every board can be flashed and probed in the same way.</li>
+<li>A plug for the 3 × 12 header that loops each TX to its RX, puts known resistors on SDA/SCL, and loads each 5 V and 4V5 pin group.</li>
+<li>A lower-board load plug for the J2 holes (clip-in pins): 2 A on <code>5V</code>, 2 A on <code>PI5V</code>, six 1 kΩ loads on the motor signals.</li>
+<li>A copper shorting bar for <code>ESC+</code>/<code>ESC−</code> with a calibrated 50 A reference shunt in series.</li>
+</ul>
+<p><strong>Boundary scan</strong> is not available: only SWDIO and SWCLK are brought out, and the JTAG pins (PA15, PB3, PB4) are unconnected. The substitute is a pin-walk test firmware loaded over SWD that drives each header pin in turn while the loopback plug reports. Allow 4 hours to write it; ArduPilot's own <code>GPIO</code> and serial-loopback commands cover most of it.</p>
+<p><strong>Extra electrical tests</strong> (beyond the existing sections A–E)</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Test</th>
+<th>Criterion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>J6</td>
+<td>Scope every rail at first power: rise shape, overshoot, ripple at 20 MHz bandwidth and full bandwidth</td>
+<td><code>+5V</code> and <code>+5V_PI</code> ripple ≤ 50 mV p-p at 3 A; <code>+3V3</code> ≤ 30 mV; <code>+3V3_SENS</code> ≤ 5 mV; no overshoot above 5.5 V</td>
+</tr>
+<tr>
+<td>J6b</td>
+<td>USB plugged 50 times with the scope on <code>VBUS</code> at U5, peak-detect</td>
+<td>Peak ≤ 5.8 V. This settles Risk 1 on real hardware</td>
+</tr>
+<tr>
+<td>J6c</td>
+<td>Battery (3S, fully charged, 150 mm leads) plugged 20 times, scope on <code>VESC</code></td>
+<td>Peak ≤ 22 V</td>
+</tr>
+<tr>
+<td>J7</td>
+<td>Load step 0.5 ↔ 2.5 A on each rail at 6.5, 8.4 and 12.6 V; full-load release; start into 470 µF and into a companion computer</td>
+<td>Within 4.75–5.25 V; no hiccup; switch-node jitter stable (a proxy for phase margin). With a network analyser: phase margin ≥ 45°</td>
+</tr>
+<tr>
+<td>J7b</td>
+<td>EN leakage test: bridge EN to ground and to VIN with 1 MΩ on a sacrificial board</td>
+<td>Shows directly how little leakage disables the rail; confirms the divider fix</td>
+</tr>
+<tr>
+<td>J8</td>
+<td>20, 35 and 50 A for 10 minutes each, still air then fan; thermal image; four-wire resistance</td>
+<td>Limits from E1; path resistance within 20 % of C1</td>
+</tr>
+<tr>
+<td>J9</td>
+<td>Sense calibration at 0, 5, 10, 25, 50 A and 6, 8.4, 12.6 V; then with a real ESC at 50 % throttle</td>
+<td>Linearity ≤ 1 % of reading above 5 A after calibration; logged current noise ≤ 0.5 A rms</td>
+</tr>
+<tr>
+<td>J10</td>
+<td>Crystal: frequency error and start-up time at −10 and +60 °C; OSD picture stable (27 MHz crystal)</td>
+<td>8 MHz within ±50 ppm; start &lt; 10 ms; no picture roll</td>
+</tr>
+<tr>
+<td>J10b</td>
+<td>SD card: 1 hour of full-rate logging with three card brands; count I/O errors</td>
+<td>Zero errors, no dropped log messages</td>
+</tr>
+<tr>
+<td>J10c</td>
+<td>Weak USB: 4.4 V at the service connector, SD logging on</td>
+<td><code>+3V3</code> ≥ 3.13 V; no brown-out reset</td>
+</tr>
+<tr>
+<td>J12</td>
+<td>Near-field scan of both boards; GPS receiver 50 mm away: carrier-to-noise with the stack off, on, logging, OSD on</td>
+<td>GPS C/N0 drop ≤ 2 dB</td>
+</tr>
+<tr>
+<td>J12b</td>
+<td>Video: grey field from a camera, with buzzer sounding, SD writing, 3 A on <code>+5V</code></td>
+<td>No visible bars or sparkle</td>
+</tr>
+<tr>
+<td>J13</td>
+<td>±4 kV contact discharge to the USB shell and to the header ground pin, with the board running</td>
+<td>No latch-up, no reset that does not recover</td>
+</tr>
+<tr>
+<td>J13b</td>
+<td>Reversed service cable, powered</td>
+<td>No damage (the design claims this)</td>
+</tr>
+<tr>
+<td>J14</td>
+<td>−10 °C and +60 °C: boot, sensors, logging; IMU bias against temperature from the log</td>
+<td>Boots in both; gyro bias drift within the ICM-45686's datasheet figure</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Vibration (J11)</strong></p>
+<ol>
+<li>Tap test on the bench with <code>INS_LOG_BAT_*</code> batch sampling: find the first resonance of the upper board. Compare with G1.</li>
+<li>Motors on the airframe, props off then on, throttle sweep: FFT of gyro and accelerometer; <code>VIBE</code> clipping counters.</li>
+<li>Repeat with the header cables tied down and loose, and with the power leads stiff and strain-relieved.</li>
+</ol>
+<p>Criteria: clipping count 0; <code>VIBE</code> below 30 m/s² (ArduPilot's own guidance <span class="tag">[recall]</span>); no resonance peak within the motor fundamental band at hover; noise floor not worse than a known-good soft-mounted board on the same frame.</p>
+<p><strong>Flight progression (J15)</strong></p>
+<ol>
+<li>Bench, props off: motor order and direction, DShot and telemetry, failsafes, battery monitor against a meter.</li>
+<li>Tethered or hand-held hover in Stabilize for 30 s; land; read the log (vibration, rail events, current calibration, IMU consistency).</li>
+<li>Hover in AltHold then Loiter with GPS and compass; compass-motor interference check.</li>
+<li>Five-minute hover with temperature logging; check the IMU temperature and the lower-board hot spots straight after landing.</li>
+<li>Step up throttle demands in stages (50, 75, 100 %) watching for resets; only then full missions.</li>
+<li>Repeat step 5 on a 3S pack at full charge, where the input clamp and the regulators have the least margin.</li>
+</ol>
+<p>A second airframe-independent board should stay on the bench as a reference for comparisons.</p></details>
+<details class="sec" id="s6"><summary>6. Tool survey</summary><p>Versions and dates as found on 2026-11-25. "Verified" means I opened the page or ran the tool today.</p>
+<div class="scroll wide"><table class="c6">
+<thead>
+<tr>
+<th>Tool</th>
+<th>Version / date</th>
+<th>Accepts KiCad data?</th>
+<th>Cost</th>
+<th>Verified?</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KiCad</td>
+<td>10.0.0 released 2026-03-20; 10.0.6 in August 2026</td>
+<td>–</td>
+<td>free</td>
+<td><span class="tag">[web]</span> release posts</td>
+<td>Adds a graphical DRC rule editor and a track-tuning overhaul. This project is on 9.0.9; no need to move before ordering</td>
+</tr>
+<tr>
+<td>ngspice</td>
+<td>42 installed here. Latest: 46 confirmed in Debian (2026-03); 47 (2026-08) claimed by Wikipedia only</td>
+<td>SPICE netlists from <code>kicad-cli</code></td>
+<td>free</td>
+<td>42 verified by running it; newer versions <span class="tag">[web]</span>, conflicting</td>
+<td>42 is enough for everything in 5.B</td>
+</tr>
+<tr>
+<td>TI WEBENCH / PSpice for TI</td>
+<td>current</td>
+<td>no (manual entry)</td>
+<td>free with TI account; PSpice for TI is Windows</td>
+<td><span class="tag">[web]</span> ti.com lists SLUM790 (transient) and SLUM818 (unencrypted, P variant)</td>
+<td>The only source of TI's real controller model. Does not run on this server</td>
+</tr>
+<tr>
+<td>LTspice, QSPICE</td>
+<td>–</td>
+<td>netlists</td>
+<td>free, Windows (LTspice under Wine)</td>
+<td><span class="tag">[recall]</span></td>
+<td>TI's models are reported not to convert cleanly <span class="tag">[web: TI forum]</span></td>
+</tr>
+<tr>
+<td>JLCDFM</td>
+<td>web tool, more than 30 checks in five groups</td>
+<td>Gerber + BOM + CPL upload</td>
+<td>free</td>
+<td><span class="tag">[web]</span> vendor pages only</td>
+<td>Upload by the owner. Results are tied to JLCPCB's own limits, which is what matters here</td>
+</tr>
+<tr>
+<td>NextPCB HQDFM</td>
+<td>–</td>
+<td>Gerber upload / Windows program</td>
+<td>free</td>
+<td><span class="tag">[web]</span> third-party description</td>
+<td>Useful second opinion; includes a netlist compare <span class="tag">[recall]</span></td>
+</tr>
+<tr>
+<td>Siemens Valor NPI / PCBflow</td>
+<td>–</td>
+<td>ODB++, IPC-2581 (KiCad 9 exports both)</td>
+<td>licensed</td>
+<td>not verified today</td>
+<td>The reference for DFM/DFA. Not justified for five prototypes</td>
+</tr>
+<tr>
+<td>Siemens HyperLynx</td>
+<td>2604 (April 2026), 2610 (October 2026)</td>
+<td>ODB++, IPC-2581, <code>.hyp</code></td>
+<td>licensed</td>
+<td><span class="tag">[web]</span> release blog titles; feature detail not read</td>
+<td>DRC rule deck for return paths, DC drop, SI</td>
+</tr>
+<tr>
+<td>Ansys SIwave / AEDT</td>
+<td>2026 releases</td>
+<td><strong>Conflicting.</strong> An Ansys forum reply says KiCad ECAD export is not supported and a KiCad 9.0.3 IPC-2581 import lost the passives; a KiCad forum user says ODB++/IPC-2581 import works <span class="tag">[web]</span></td>
+<td>licensed</td>
+<td>not verified</td>
+<td>Expect manual part set-up if used. KiCad 10.0.6 lists IPC-2581 export fixes <span class="tag">[web]</span></td>
+</tr>
+<tr>
+<td>Cadence Sigrity X, Celsius</td>
+<td>–</td>
+<td>IPC-2581, ODB++</td>
+<td>licensed</td>
+<td><strong>not verified</strong> (search returned nothing usable)</td>
+<td><span class="tag">[recall]</span> PowerDC and Celsius cover C1 and E1 with electro-thermal coupling</td>
+</tr>
+<tr>
+<td>Keysight ADS PIPro</td>
+<td>–</td>
+<td>ODB++</td>
+<td>licensed</td>
+<td><strong>not verified</strong></td>
+<td>Altium's old PDN Analyzer has been succeeded by "Power Analyzer by Keysight" inside Altium Designer <span class="tag">[web]</span>; irrelevant to a KiCad flow</td>
+</tr>
+<tr>
+<td>padne</td>
+<td>no tagged release; 541 commits, 2026 copyright</td>
+<td>native KiCad project</td>
+<td>GPL-3</td>
+<td><span class="tag">[web]</span> repository page read</td>
+<td>2.5D FEM DC drop and current density; <code>padne solve</code>; outputs ParaView files. Not installed</td>
+</tr>
+<tr>
+<td>KiPI</td>
+<td>1.0.1 (date not shown)</td>
+<td><code>.kicad_pcb</code> (KiCad 7–10), ODB++</td>
+<td>GPL-3</td>
+<td><span class="tag">[web]</span> repository page read</td>
+<td>DC drop with via currents and optional temperature; AC PDN impedance; buck-to-victim coupled noise. Headless extraction documented, headless solve not. Not installed</td>
+</tr>
+<tr>
+<td>kicad-zone-resistance, kicad-irdrop, "Copper Thermal", <code>kicad_thermal_sim</code></td>
+<td>2026</td>
+<td>KiCad 9/10 plugins</td>
+<td>open / mixed</td>
+<td><span class="tag">[web]</span> search summaries only</td>
+<td>Candidates if the in-house grid solver is not wanted</td>
+</tr>
+<tr>
+<td>openEMS + Antmicro gerber2ems / si-wrapper</td>
+<td>July 2025 update: adaptive mesh, differential pairs</td>
+<td>Gerbers; wrapper needs KiCad 9, gerbv</td>
+<td>free</td>
+<td><span class="tag">[web]</span></td>
+<td>Per-net S-parameters. Overkill for this board; not installed</td>
+</tr>
+<tr>
+<td>FastHenry, Elmer, sparselizard</td>
+<td>–</td>
+<td>geometry by script</td>
+<td>free</td>
+<td><span class="tag">[recall]</span></td>
+<td>Loop inductance (FastHenry) and general FEM. Not installed</td>
+</tr>
+<tr>
+<td>Renode via ArduPilot <code>Tools/renode</code></td>
+<td>in the local ArduPilot tree (2026-11-16)</td>
+<td>generated from <code>hwdef.dat</code></td>
+<td>free</td>
+<td><span class="tag">[web]</span> ArduPilot docs read; tree checked locally</td>
+<td>Renode itself not installed; patched build recommended; functional models only</td>
+</tr>
+<tr>
+<td>ArduPilot SITL, simulation on hardware</td>
+<td>local tree</td>
+<td>–</td>
+<td>free</td>
+<td>tree checked locally; <span class="tag">[web]</span> docs</td>
+<td>SITL runs here; the second needs a board</td>
+</tr>
+<tr>
+<td>STM32CubeMX</td>
+<td>–</td>
+<td>–</td>
+<td>free, GUI</td>
+<td><span class="tag">[recall]</span></td>
+<td>Independent pin and DMA clash check</td>
+</tr>
+</tbody>
+</table></div></details>
+<details class="sec" id="s7"><summary>7. What cannot be done here, or at all before hardware</summary><div class="scroll"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Why</th>
+<th>What to do instead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TI's switching model of the TPS62933</td>
+<td>Needs WEBENCH (browser, account) or PSpice for TI (Windows)</td>
+<td>The owner runs WEBENCH with this design's values (4.7 µH, 2 × 10.7 µF effective, 53.2 k / 10 k); cross-check with the averaged model in ngspice here</td>
+</tr>
+<tr>
+<td>Fab DFM/DFA</td>
+<td>Vendor web tools; uploading design files is the owner's call</td>
+<td>Owner uploads; the scripted checks in 5.A cover the generic rules locally</td>
+</tr>
+<tr>
+<td>Field-solver PDN impedance, plane resonance, radiated emissions</td>
+<td>Commercial solvers, or open-source FEM that is not installed and may not be runnable in this sandbox; 8 GB RAM</td>
+<td>Lumped PDN model (C3), layout rule scans (D1, F1, F2), then near-field and GPS tests on hardware</td>
+</tr>
+<tr>
+<td>3D thermal with airflow</td>
+<td>Icepak/Celsius/Flotherm</td>
+<td>2D spreading model with bracketed film coefficients (E1), then a thermal camera</td>
+</tr>
+<tr>
+<td>IBIS-accurate waveforms</td>
+<td>Needs ST's IBIS file fetched and a conversion step; KiCad's IBIS support from the command line is unconfirmed</td>
+<td>D3 as planned; fall back to a 3.3 V source with 25–50 Ω and 1–2 ns edges as a pessimistic driver</td>
+</tr>
+<tr>
+<td>Grommet isolation, real cable forces, connector wipe</td>
+<td>No manufacturer data for the grommets</td>
+<td>Hardware (J11)</td>
+</tr>
+<tr>
+<td>Crystal behaviour of the OSD chip</td>
+<td>No load-capacitance figure in either datasheet</td>
+<td>Hardware (J10)</td>
+</tr>
+<tr>
+<td>IMU orientation, sensor noise in flight, buzzer loudness, LED brightness</td>
+<td>Physical</td>
+<td>Existing bring-up steps</td>
+</tr>
+<tr>
+<td>Boundary scan</td>
+<td>JTAG pins not brought out</td>
+<td>SWD pin-walk firmware with a loopback plug</td>
+</tr>
+<tr>
+<td>Anything statistical about assembly yield</td>
+<td>Five boards</td>
+<td>Inspect all five; keep the X-ray images</td>
+</tr>
+</tbody>
+</table></div></details>
+<details class="sec" id="s8"><summary>8. Proposed additions to <code>tools/verify.py</code></summary><p>Each is read-only on the design and needs nothing installed. Suggested order follows the ranking in section 3.</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>New check</th>
+<th>From</th>
+<th>Run time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Zone refill on a temp copy, DRC, re-export; Gerber, drill <strong>and D-356</strong> diff against <code>fab/</code></td>
+<td>A1</td>
+<td>1 min</td>
+</tr>
+<tr>
+<td>Model-to-schematic netlist comparison (currently only at build time)</td>
+<td>I6</td>
+<td>10 s</td>
+</tr>
+<tr>
+<td>BOM ↔ CPL ↔ board consistency</td>
+<td>I3</td>
+<td>5 s</td>
+</tr>
+<tr>
+<td>Current-capacity table per net and per via against a <code>gen/currents.py</code> table</td>
+<td>A3</td>
+<td>10 s</td>
+</tr>
+<tr>
+<td>Mask web, paste area ratio, pad thermal balance</td>
+<td>A4</td>
+<td>20 s</td>
+</tr>
+<tr>
+<td>Return-via and plane-void scan; pour-island stitching count</td>
+<td>D1, F4</td>
+<td>30 s</td>
+</tr>
+<tr>
+<td>Signal under inductor / near switch node</td>
+<td>F2</td>
+<td>5 s</td>
+</tr>
+<tr>
+<td>Regulator hot-loop area</td>
+<td>F1</td>
+<td>5 s</td>
+</tr>
+<tr>
+<td>SPICE regressions through <code>libngspice</code> (<code>sim/*.cir</code> with <code>.meas</code> limits): USB hot-plug, battery hot-plug, hand-over, reset timing, sense-chain response</td>
+<td>B1, B2, B4, B7, B9</td>
+<td>1 min</td>
+</tr>
+<tr>
+<td>Monte Carlo tolerance report</td>
+<td>B5</td>
+<td>20 s</td>
+</tr>
+<tr>
+<td>DC drop and current-density solve with limits; Kelvin tap error</td>
+<td>C1, C2</td>
+<td>2–5 min</td>
+</tr>
+<tr>
+<td>Thermal grid solve with limits</td>
+<td>E1–E4</td>
+<td>2–5 min</td>
+</tr>
+<tr>
+<td>Plate-model first mode and IMU strain</td>
+<td>G1</td>
+<td>30 s</td>
+</tr>
+<tr>
+<td>Connector and tail-clearance tolerance Monte Carlo</td>
+<td>G2</td>
+<td>10 s</td>
+</tr>
+<tr>
+<td>hwdef diff against the Matek reference; DMA sharing report</td>
+<td>H1</td>
+<td>5 s</td>
+</tr>
+<tr>
+<td>Renode boot test</td>
+<td>H2</td>
+<td>2 min, only if Renode can be run</td>
+</tr>
+</tbody>
+</table></div>
+<p>The slow ones (C1, E1) should sit behind a <code>--full</code> flag so <code>make verify</code> stays quick.</p></details>
+<details class="sec" id="s9"><summary>9. Effort summary</summary><div class="scroll"><table>
+<thead>
+<tr>
+<th>Block</th>
+<th>Hours</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Section 3.1, ranks 1–5 (the must-do set)</td>
+<td>about 7</td>
+</tr>
+<tr>
+<td>Section 3.1, ranks 6–10</td>
+<td>20–27</td>
+</tr>
+<tr>
+<td>Section 3.1, ranks 11–20</td>
+<td>26–28</td>
+</tr>
+<tr>
+<td>Before first power-up (3.2)</td>
+<td>about 12</td>
+</tr>
+<tr>
+<td>With hardware (3.3), excluding flight</td>
+<td>about 26</td>
+</tr>
+</tbody>
+</table></div>
+<p>A sensible stopping point before ordering is rank 10: roughly 30–35 hours, after which every top-five risk has either a number or a design change behind it.</p></details>
+<details class="sec" id="s10"><summary>10. Sources consulted on 2026-11-25</summary><p>Repository files read: <code>README.md</code>, <code>docs/design.md</code>, <code>docs/verification.md</code>, <code>docs/verification-report.md</code>, <code>docs/bringup.md</code>, <code>docs/manufacturing.md</code>, <code>docs/firmware.md</code>, parts of <code>docs/ordering-jlcpcb.md</code>; <code>research/audit-2026-11-19.md</code> (findings, calculations, could-not-verify), <code>research/design-review.md</code> (should-fix, notes, not-checked), <code>research/layout-review.md</code>, headings and unverified items of <code>research/parts.md</code>, <code>mechanical.md</code>, <code>samtec-b2b.md</code>, <code>header-clearance.md</code>, <code>footprints.md</code>; <code>gen/upper.py</code>, <code>gen/lower.py</code>, <code>gen/service.py</code>, <code>gen/parts.py</code>, <code>gen/pinmap.py</code>, <code>gen/blocks.py</code>; <code>tools/verify.py</code>, the header of <code>tools/check_stack.py</code>; <code>firmware/hwdef/StackF765/hwdef.dat</code>, <code>firmware/bin/hwdef.generated.h</code> (DMA section); the three <code>.kicad_pcb</code> files through <code>pcbnew</code>. Not read: <code>gen/kigen/router.py</code>, <code>tools/check_hwdef.py</code>, <code>research/ndaa-manufacturing.md</code>, the schematic files themselves.</p>
+<p>Web pages:</p>
+<ul>
+<li>KiCad 10.0.0 release: <a href="https://www.kicad.org/blog/2026/03/Version-10.0.0-Released/" rel="noopener">https://www.kicad.org/blog/2026/03/Version-10.0.0-Released/</a> ; 10.0.6: <a href="https://www.kicad.org/blog/2026/08/KiCad-10.0.6-Release/" rel="noopener">https://www.kicad.org/blog/2026/08/KiCad-10.0.6-Release/</a></li>
+<li>ngspice news and download pages: <a href="https://ngspice.sourceforge.io/news.html" rel="noopener">https://ngspice.sourceforge.io/news.html</a> , <a href="https://ngspice.sourceforge.io/download.html" rel="noopener">https://ngspice.sourceforge.io/download.html</a> ; Debian tracker: <a href="https://tracker.debian.org/pkg/ngspice/news/" rel="noopener">https://tracker.debian.org/pkg/ngspice/news/</a></li>
+<li>JLCPCB DFM: <a href="https://dfm.jlcpcb.com" rel="noopener">https://dfm.jlcpcb.com</a> , <a href="https://jlcpcb.com/blog/free-dfm-tool" rel="noopener">https://jlcpcb.com/blog/free-dfm-tool</a> ; NextPCB HQDFM manual: <a href="https://www.nextpcb.com/dfm-user-manual" rel="noopener">https://www.nextpcb.com/dfm-user-manual</a></li>
+<li>padne: <a href="https://github.com/atx/padne" rel="noopener">https://github.com/atx/padne</a> ; KiPI: <a href="https://github.com/drewsum/KiPI" rel="noopener">https://github.com/drewsum/KiPI</a> ; KiCad forum threads on voltage-drop and thermal plugins: <a href="https://forum.kicad.info/t/fem-voltage-drop-simulator/57710" rel="noopener">https://forum.kicad.info/t/fem-voltage-drop-simulator/57710</a> , <a href="https://forum.kicad.info/t/resistance-and-pdn-plugin/70648" rel="noopener">https://forum.kicad.info/t/resistance-and-pdn-plugin/70648</a> , <a href="https://forum.kicad.info/t/new-plugin-kicad-copper-thermal/72454" rel="noopener">https://forum.kicad.info/t/new-plugin-kicad-copper-thermal/72454</a></li>
+<li>Antmicro gerber2ems and SI flow: <a href="https://github.com/antmicro/gerber2ems" rel="noopener">https://github.com/antmicro/gerber2ems</a> , <a href="https://antmicro.com/blog/2025/07/recent-improvements-to-antmicros-signal-integrity-simulation-flow" rel="noopener">https://antmicro.com/blog/2025/07/recent-improvements-to-antmicros-signal-integrity-simulation-flow</a></li>
+<li>TI TPS62933 product page (models, EVM, notes SLUAAG4/5, SLUAAF1): <a href="https://www.ti.com/product/TPS62933" rel="noopener">https://www.ti.com/product/TPS62933</a> ; TI forum on LTspice conversion: <a href="https://e2e.ti.com/support/tools/simulation-hardware-system-design-tools-group/sim-hw-system-design/f/simulation-hardware-system-design-tools-forum/1494059/tps62933-ltspice-model-request" rel="noopener">https://e2e.ti.com/support/tools/simulation-hardware-system-design-tools-group/sim-hw-system-design/f/simulation-hardware-system-design-tools-forum/1494059/tps62933-ltspice-model-request</a></li>
+<li>Ansys forum on KiCad import: <a href="https://innovationspace.ansys.com/forum/?p=440114" rel="noopener">https://innovationspace.ansys.com/forum/?p=440114</a> ; KiCad forum on SIwave: <a href="https://forum.kicad.info/t/moving-from-altium-to-kicad-for-pcb-design-with-ansys-siwave-analysis/71731" rel="noopener">https://forum.kicad.info/t/moving-from-altium-to-kicad-for-pcb-design-with-ansys-siwave-analysis/71731</a></li>
+<li>Siemens HyperLynx 2604 and 2610: <a href="https://blogs.sw.siemens.com/electronic-systems-design/2026/04/27/whats-new-in-hyperlynx-2604/" rel="noopener">https://blogs.sw.siemens.com/electronic-systems-design/2026/04/27/whats-new-in-hyperlynx-2604/</a> , <a href="https://blogs.sw.siemens.com/electronic-systems-design/2026/10/26/whats-new-in-hyperlynx-2610/" rel="noopener">https://blogs.sw.siemens.com/electronic-systems-design/2026/10/26/whats-new-in-hyperlynx-2610/</a></li>
+<li>Altium Power Analyzer by Keysight: <a href="https://www.altium.com/products/extensions/power-analyzer" rel="noopener">https://www.altium.com/products/extensions/power-analyzer</a></li>
+<li>ArduPilot Renode emulation: <a href="https://ardupilot.org/dev/docs/renode-emulation.html" rel="noopener">https://ardupilot.org/dev/docs/renode-emulation.html</a> ; simulation on hardware: <a href="https://ardupilot.org/dev/docs/sim-on-hardware.html" rel="noopener">https://ardupilot.org/dev/docs/sim-on-hardware.html</a></li>
+<li>TDK IMU layout guidance (titles found, documents not opened): <a href="https://invensense.tdk.com/download-pdf/an-000393-imu-pcb-design-and-mems-assembly-guidelines" rel="noopener">https://invensense.tdk.com/download-pdf/an-000393-imu-pcb-design-and-mems-assembly-guidelines</a></li>
+<li>BMP388 lifecycle: search results citing Bosch Sensortec and distributor pages; Bosch's product URL returned 404 when fetched.</li>
+</ul>
+<p>Scratch scripts used to read the boards (read-only) are in a temporary scratch folder on the build server, not in the repository (<code>lower.py</code>, <code>upper.py</code>, <code>ngtest.py</code>).</p></details>
+<p class="small">Section numbers are those of the original plan; sections 1 and 3 are at the top of this page. Design files: <a href="https://github.com/PeterJBurke/stackf765" rel="noopener">PeterJBurke/stackf765</a>. No hardware built yet.</p>
+</main>
+<script>
+(function(){
+function openFor(id){var e=id&&document.getElementById(id);if(!e)return;
+for(var d=e;d;d=d.parentElement){if(d.tagName==='DETAILS')d.open=true}
+e.scrollIntoView()}
+function fromHash(){openFor(decodeURIComponent(location.hash.slice(1)))}
+addEventListener('hashchange',fromHash);if(location.hash)fromHash();
+function all(v){document.querySelectorAll('details.sec').forEach(function(d){d.open=v})}
+document.getElementById('openAll').onclick=function(){all(true)};
+document.getElementById('closeAll').onclick=function(){all(false)};
+})();
+</script>
+</body></html>
