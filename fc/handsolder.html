@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>StackF765 — Hand soldering</title>
+<style>
+:root{--bg:#f7f8f9;--fg:#15181c;--muted:#4e5661;--panel:#fff;--line:#c3c8cf}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
+body .page-links{position:static;display:flex;flex-wrap:wrap;gap:6px;padding:14px}
+main{max-width:820px;margin:0 auto;padding:4px 16px 40px}
+h1{font-size:24px;line-height:1.25;margin:10px 0 6px}
+h2{font-size:18px;margin:30px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+p{margin:8px 0}
+.lead{color:var(--muted)}
+ol,ul{margin:8px 0;padding-left:24px}
+li{margin:5px 0}
+main a{color:#126596}
+code{font:13px ui-monospace,Menlo,Consolas,monospace;background:#e9edf1;padding:1px 4px;border-radius:3px;white-space:nowrap}
+figure{margin:14px 0}
+figure img{display:block;width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:6px}
+figcaption{font-size:13px;color:var(--muted);margin-top:5px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.pair figure{margin:0}
+.scroll{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel)}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#e6edf5;color:#29425b;font-weight:600}
+table.pins th,table.pins td{text-align:center;padding:5px 4px}
+table.pins th:first-child,table.pins td:first-child{text-align:left}
+.warn{background:#fff0d5;color:#5c3400;border:1px solid #e3c48b;border-radius:6px;padding:9px 12px;margin:12px 0}
+.small{font-size:13px;color:var(--muted)}
+figure.mid{max-width:560px}
+@media(max-width:600px){.pair{grid-template-columns:1fr}h1{font-size:21px}table{font-size:13px}th,td{padding:5px;overflow-wrap:anywhere}table.pins{font-size:11px}table.pins th,table.pins td{padding:4px 1px;overflow-wrap:normal}}
+</style><link href="assets/controls.css" rel="stylesheet"/></head><body>
+<div class="page-links"><a href="./">Drone</a><a href="board.html">Board</a><a aria-current="page" href="handsolder.html">Hand soldering</a></div>
+<main>
+<h1>StackF765: hand soldering</h1>
+<p class="lead">JLCPCB fits everything except one part: the 3 × 12 right-angle header on the upper board (<code>J1</code>). You solder that header, the wires into the lower board, and the power wires.</p>
+
+<h2>What to buy (5 sets)</h2>
+<div class="scroll"><table>
+<tr><th>Part</th><th>Qty for 5</th><th>Part number</th><th>Price (approx.)</th></tr>
+<tr><td>3 × 3 right-angle header, 2.54 mm (4 per board)</td><td>20 (buy 30)</td><td>HCTL PZ254-3-03-W-2.5-G0, <a href="https://lcsc.com/product-detail/Pin-Headers_HCTL-PZ254-3-03-W-2-5-G0_C7429379.html" rel="noopener">LCSC C7429379</a>.<br/>Or one Samtec TSW-112-08-G-T-RA per board</td><td>$7 for 30.<br/>Samtec: $3.47 each</td></tr>
+<tr><td>M2 × 4 mm pan-head screw</td><td>15</td><td>Generic</td><td>$2.40 per 100</td></tr>
+<tr><td>JST-SH 6-pin cable, 100 mm, wired 1:1</td><td>5 (buy 7)</td><td>JST A06SR06SR30K102A</td><td>$1.60 each</td></tr>
+<tr><td>Silicone grommet, “M4 to M3”, and brass “M3 to M2” insert</td><td>20 + 20</td><td>Generic, Matek style</td><td>$1.90 per 5; $2 per 10</td></tr>
+<tr><td>M2 screws and nuts for the frame</td><td>20 + 20</td><td>Generic, length to suit the frame</td><td>$6</td></tr>
+<tr><td>Silicone power wire, 12 AWG for 50 A</td><td>1 m red, 1 m black</td><td>Generic</td><td>$10</td></tr>
+<tr><td>XT60 battery connector</td><td>5</td><td>SparkFun 10474 or generic</td><td>$2.50 each</td></tr>
+</table></div>
+<p class="small">Prices as read on 2026-11-20; not re-checked. Screw, grommet and insert prices are from search results only. Grommet fit in the 4 mm holes is not stated by any seller: measure one before buying 30.</p>
+
+<h2>Tools</h2>
+<ul>
+<li>Soldering iron: a small chisel tip for the header and wires, a large tip for the power pads.</li>
+<li>Solder and no-clean flux. Do not wash the upper board or use an ultrasonic cleaner.</li>
+<li>Multimeter with continuity beeper.</li>
+<li>Tape or putty to hold the header, flush cutters, wire strippers, small screwdriver.</li>
+</ul>
+
+<h2>1. Upper board: the header (J1)</h2>
+<div class="pair">
+<figure><img alt="One 3 x 3 right-angle header piece, seen from behind and from the front" height="352" src="handsolder/part-header-3x3.jpg" width="800"/><figcaption>One 3 × 3 piece. Four go side by side.</figcaption></figure>
+<figure><img alt="Upper board with the 3 x 12 header outlined at the front edge, top side" height="675" src="handsolder/where-upper-j1-header.jpg" width="900"/><figcaption>Top side, front edge. The board arrives with bare holes here.</figcaption></figure>
+</div>
+<ol>
+<li>Put the four pieces in from the <b>top side</b>, side by side with no gaps. Short legs go through the 36 holes; long pins point off the board.</li>
+<li>The plastic body hangs just beyond the board edge. Tape it down flat.</li>
+<li>Turn the board over. Solder one leg at each end.</li>
+<li>Check the row is flat and square. Reheat a leg to adjust.</li>
+<li>Solder the other 34 legs. Look for bridges between neighbours.</li>
+<li>Do not trim the tails.</li>
+</ol>
+
+<h2>2. Lower board: wires into the J2 holes</h2>
+<div class="warn"><b>Never fit a pin header here.</b> Its pins would sit directly under the pins of the upper board’s header.</div>
+<figure><img alt="The 3 x 9 solder holes at the front edge of the lower board, with columns M1 to M6, LED, PI5V, PI5V and rows ground, 5 V, signal labelled" height="392" src="handsolder/j2-holes-labelled.jpg" width="1200"/><figcaption>Seen from above, front edge away from you. One column is one lead. The names are printed on the board.</figcaption></figure>
+<div class="scroll"><table class="pins">
+<tr><th>Row</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr>
+<tr><td>Nearest the edge</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td><td>G</td></tr>
+<tr><td>Middle</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td><td>5V</td><td>PI5V</td><td>PI5V</td></tr>
+<tr><td>Inner (signal)</td><td>M1</td><td>M2</td><td>M3</td><td>M4</td><td>M5</td><td>M6</td><td>LED</td><td>PI5V</td><td>PI5V</td></tr>
+</table></div>
+<p class="small">M1–M6: motor or servo outputs. LED: LED strip data. PI5V: separate 5 V, 3 A supply for a companion computer.</p>
+<ol>
+<li>Push each wire in from the <b>top</b> and solder it. Holes are 1.0 mm on a 2.54 mm grid.</li>
+<li><b>3 mm rule:</b> for the first 8 mm behind the front edge, keep every joint and wire within 3 mm of the board. Lead the wires away low.</li>
+</ol>
+<figure><img alt="Side view of the front edge: the upper header's tails hang over the lower board's holes; wires must stay inside a zone 3 mm high and 8 mm deep" height="546" src="handsolder/diagram-j2-wire-zone.png" width="1406"/><figcaption>Wires and joints stay inside the yellow zone. The upper header’s tails come down from above.</figcaption></figure>
+
+<h2>3. Lower board: power wires</h2>
+<figure class="mid"><img alt="Lower board with the four power pads outlined on the rear edge: BAT+, ESC+, ESC-, BAT-" height="675" src="handsolder/where-lower-power-pads.jpg" width="900"/><figcaption>Rear edge, pads towards you, left to right: BAT+ ESC+ ESC− BAT−. The black socket in the middle is fitted by JLCPCB.</figcaption></figure>
+<ol>
+<li>Tin the four pads and the wire ends.</li>
+<li>Solder with the large tip. Order: <code>BAT+</code> <code>ESC+</code> <code>ESC−</code> <code>BAT−</code>.</li>
+<li>Keep the wires flat and pointing rearward so they clear the upper board.</li>
+</ol>
+<div class="warn"><b>No reverse-polarity protection.</b> 2S–3S battery only. Check polarity twice with a meter before connecting one.</div>
+
+<h2>4. Stack the boards</h2>
+<ol>
+<li>Peel the clear film off the black socket on the lower board.</li>
+<li>Press the upper board down onto the three standoffs.</li>
+<li>Fasten with three M2 × 4 mm screws. No longer.</li>
+</ol>
+
+<h2>5. Meter check before first power</h2>
+<p>Stack assembled, no battery, no USB. Use the continuity beeper.</p>
+<div class="scroll"><table>
+<tr><th>Between</th><th>Must read</th></tr>
+<tr><td><code>PI5V</code> and <code>G</code></td><td>Not shorted</td></tr>
+<tr><td>Upper header <code>5V</code> pins and <code>M1</code>–<code>M6</code>, <code>LED</code></td><td>Not connected</td></tr>
+<tr><td><code>BAT+</code> and <code>BAT−</code></td><td>Not shorted</td></tr>
+<tr><td>Battery plug + and <code>BAT+</code> pad</td><td>Connected (polarity right)</td></tr>
+</table></div>
+
+<h2>More detail</h2>
+<ul>
+<li><a href="https://github.com/PeterJBurke/stackf765/blob/main/docs/assembly.md" rel="noopener">Assembly</a>: grommets, service cable, mounting.</li>
+<li><a href="https://github.com/PeterJBurke/stackf765/blob/main/docs/pinout.md" rel="noopener">Pinout</a>: every pin of the upper header.</li>
+<li><a href="https://github.com/PeterJBurke/stackf765/blob/main/docs/bringup.md" rel="noopener">Bring-up</a>: checks for each board and first power.</li>
+<li><a href="board.html">Board view</a>: turn the boards around in 3D.</li>
+</ul>
+<p class="small">Pictures are renders of the design. No hardware built yet.</p>
+</main>
+</body></html>
